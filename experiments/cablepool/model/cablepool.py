@@ -4,75 +4,85 @@ from LESO import PhotoVoltaic, Wind, Lithium, Grid, FinalBalance
 import pandas as pd
 from pathlib import Path
 
+from LESO.leso_logging import get_module_logger, log_to_stderr
+from logging import DEBUG
+
+log_to_stderr()
+
+#%%
 FOLDER = Path(__file__).parent
-model_options= {
-    "cablepool_subsidy" : True,
-    "cablepool_no_subsidy": False,
-}
 
-for modelname, apply_subsidy in model_options.items():
-    #%% Define system and components
-    modelname = modelname
-    lat, lon = 51.81, 5.84  # Nijmegen
-    SDE_price = 55 # TODO
-    equity_share = 0.5 # cite: ATB, to bump the roi up to about 7.5%
-    correct_SDE = True
+#%% Define system and components
+modelname = "cablepooling_paper"
+lat, lon = 51.89, 5.85  # Nijmegen
 
-    price_filename = "etm_dynamic_savgol_filtered_etmprice_40ch4_85co2.pkl"
-    retail_prices = pd.read_pickle(FOLDER / price_filename)
+price_filename = "etm_pricecurve.csv"
+retail_prices = pd.read_csv(FOLDER / price_filename, index_col=0)
+retail_prices = list(
+    (retail_prices / 1e6).T.values[0]
+)  # convert from eu/MWh to M eu/MWh
 
-    if apply_subsidy:
-        profile_factor = 0.65 # CE Delft, pag 22-  Scenario’s zon op grote daken
-        basis_price = 55 # Arbitrary, loosely based on projected SDE for 2022
-        correction_price = lambda retail_prices, profile_factor: retail_prices.mean() * profile_factor
-        SDE_price = basis_price - correction_price(retail_prices, profile_factor)
-        retail_prices[retail_prices < SDE_price ] = SDE_price
+# initiate System component
+system = System(lat=lat, lon=lon, model_name=modelname)
 
-    retail_prices = list((retail_prices/1e6).values) # convert from eu/MWh to M eu/MWh
+#%%
+grid = Grid(
+    "Grid connection",
+    installed=10,
+    variable_cost=retail_prices,
+    variable_income=retail_prices,
+)
+wind = Wind(
+    "Nordex N100 2500",
+    dof=False,
+    installed=10,
+    turbine_type="Nordex N100 2500",  # actually Lagerwey L100 2.5 MW, best match
+    hub_height=100,
+    use_ninja=True,
+)
+pv_s = PhotoVoltaic("PV South", azimuth=180, use_ninja=True, dof=True)
+bat_2h = Lithium("2h battery", dof=True, EP_ratio=2)
+bat_4h = Lithium("4h battery", dof=True, EP_ratio=4)
+bat_6h = Lithium("6h battery", dof=True, EP_ratio=6)
+bat_8h = Lithium("8h battery", dof=True, EP_ratio=8)
+bat_12h = Lithium("12h battery", dof=True, EP_ratio=12)
+final = FinalBalance(name="curtailment_underload")
+component_list = [pv_s, wind, bat_2h, bat_4h, bat_6h, bat_8h, bat_12h, final, grid]
 
-    # initiate System component
-    system = System(
-        lat=lat, 
-        lon=lon, 
-        model_name=modelname,
-        equity_share=equity_share)
+#%%
+# update the values to new values from DEA
+for c in component_list:
 
-    #%% 
-    grid = Grid("Grid connection", installed=10, variable_cost=999e-6, variable_income=retail_prices)
-    wind = Wind(
-        "Nordex N100 2500",
-        dof=False,
-        installed=10,
-        turbine_type="Nordex N100 2500", # actually Lagerwey L100 2.5 MW, best match
-        hub_height=100,
-        use_ninja=True,
-    )
-    pv_s = PhotoVoltaic("PV South", azimuth=180, use_ninja=True, dof=True)
-    pv_e = PhotoVoltaic("PV East", azimuth=90, use_ninja=True, dof=True)
-    pv_w = PhotoVoltaic("PV West", azimuth=270, use_ninja=True, dof=True)
-    bat_2h = Lithium("2h battery", dof=True, EP_ratio=2)
-    bat_6h = Lithium("6h battery", dof=True, EP_ratio=6)
-    bat_10h = Lithium("10h battery", dof=True, EP_ratio=10)
-    final = FinalBalance(name="curtailment_underload")
+    if isinstance(c, PhotoVoltaic):
+        pv_s.lifetime = 40
+        pv_s.opex_ratio = 0.3
+        pv_s.acdc_ratio = 0.5
 
-    #%% add the components to the system
-    # note that we do not add wind now!
-    component_list = [pv_s, wind, pv_w, pv_e, bat_2h, bat_6h, bat_10h, final, grid]
-    system.add_components(component_list)
-    #%% Pickle the model
+    if isinstance(c, Lithium):
+        c.cycle_efficieny = 0.92
+        c.discharge_rate = 0.999958
+        c.lifetime = 25
+        c._opex = 450e-3
+        c.variable_cost = 1.8e-6
 
-    if __name__ == "__main__":
-        ## Solve
-        if False:
-            system.optimize(
-                    objective='osc',        # overnight system cost
-                    time=None,              # resorts to default; year 8760h
-                    store=False,            # write-out to json
-                    solver='gurobi',        # default solver
-                    nonconvex=False,        # solver option (warning will show if needed)
-                    solve=True,             # solve or just create model
-            )
-        ## Or write to pickle
-        else: 
-            filename = modelname.lower()+".pkl"
-            system.to_pickle(FOLDER / filename)
+#%% add the components to the system
+component_list = [pv_s, wind, bat_2h, bat_4h, bat_6h, bat_8h, bat_12h, final, grid]
+system.add_components(component_list)
+#%% Pickle the model
+
+if __name__ == "__main__":
+    ## Solve
+    if False:
+        system.optimize(
+            objective="osc",  # overnight system cost
+            time=None,  # resorts to default; year 8760h
+            store=True,  # write-out to json
+            solver="gurobi",  # default solver
+            filepath="here.json",
+            nonconvex=False,  # solver option (warning will show if needed)
+            solve=True,  # solve or just create model
+        )
+    ## Or write to pickle
+    else:
+        filename = modelname.lower() + ".pkl"
+        system.to_pickle(FOLDER / filename)

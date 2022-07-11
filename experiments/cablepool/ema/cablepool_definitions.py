@@ -4,6 +4,10 @@ import LESO
 from google.cloud.exceptions import Conflict
 
 #%%
+# cost_range = (lower, upper)
+PV_COST_RANGE = (170e-3, 420e-3)
+BATTERY_ENERGY_COST_RANGE = (46e-3, 299e-3)
+BATTERY_POWER_COST_RANGE = (40e-3, 510e-3)
 
 COLLECTION = "cablepooling_paper"
 OUTPUT_PREFIX = f"{COLLECTION}_exp_"
@@ -14,23 +18,23 @@ RESULTS_FOLDER = Path(__file__).parent.parent / "results"
 RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
 
 # create bucket if not already exist
-if True:
+if False:
     try:
         LESO.dataservice.google.cloud_create_bucket(COLLECTION)
     except Conflict as c:
         print(c)
 
-MODEL = MODEL_FOLDER / "model.pkl"
+MODEL = MODEL_FOLDER / "cablepooling_paper.pkl"
 
 METRICS = [
     # components
     "PV South installed capacity",
-    "PV West installed capacity",
-    "PV East installed capacity",
     "Nordex N100 2500 installed capacity",
     "2h battery installed capacity",
+    "4h battery installed capacity",
     "6h battery installed capacity",
-    "10h battery installed capacity",
+    "8h battery installed capacity",
+    "12h battery installed capacity",
     "Grid connection installed capacity",
     # others
     "objective_result",
@@ -43,9 +47,9 @@ METRICS = [
 
 
 # this is needed due to the dependent but double variant uncertainty ranges given by ATB
-def linear_map_2030(value):
-    min, max = 0.41, 0.70  # @@
-    map_min, map_max = 0.42, 0.81  # @@
+def lithium_linear_map(value):
+    min, max = BATTERY_ENERGY_COST_RANGE
+    map_min, map_max = BATTERY_POWER_COST_RANGE
 
     frac = (value - min) / (max - min)
     m_value = frac * (map_max - map_min) + map_min
@@ -60,11 +64,11 @@ def linear_map_2050(value):
 
 if __name__ == "__main__":
     # use this to easily generate the metrics for installed capacity
-    if True:
+    if False:
         ref_system = LESO.System.read_pickle(MODEL)
         m = []
         for c in ref_system.components:
             if not isinstance(c, (LESO.FinalBalance, LESO.ETMdemand)):
                 out = c.name + " installed capacity"
                 m.append(out)
-                print(m)
+        print(m)

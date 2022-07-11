@@ -1,10 +1,10 @@
 <!-- 220627 aantekeningen met emiel.md -->
 
 # Takenlijst
-1. Kosten invullen (bandbreedtes)
-2. Technische specs aanpassen
-3. PV clipping losses in programmeren (als standaard uitgaan van ratio van 50%)
-4. Prijzen op basis van https://pro.energytransitionmodel.com/saved_scenarios/12161
+- [X] Kosten invullen (bandbreedtes)
+- [x] Technische specs aanpassen
+- [ ] PV clipping losses in programmeren (als standaard uitgaan van ratio van 50%)
+- [x] Prijzen op basis van https://pro.energytransitionmodel.com/saved_scenarios/12631
 
 ## Technische specs:
 
@@ -23,4 +23,4 @@
 | O&M           | 2.5-3.2%       | 0.3         |
 | Lifetime      | 35-40          | 40          |
 | DC - AC ratio | 2              | 2           |
-| DC - AC ratio | 340-840        | 0.34-0.84   |
+| CAPEX         | 340-840        | 0.34-0.84   |
