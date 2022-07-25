@@ -15,6 +15,8 @@ FOLDER = Path(__file__).parent
 #%% Define system and components
 modelname = "cablepooling_paper"
 lat, lon = 51.89, 5.85  # Nijmegen
+date_from = "2019-01-01"
+date_to = "2019-12-31"
 
 price_filename = "etm_pricecurve.csv"
 retail_prices = pd.read_csv(FOLDER / price_filename, index_col=0)
@@ -39,8 +41,17 @@ wind = Wind(
     turbine_type="Nordex N100 2500",  # actually Lagerwey L100 2.5 MW, best match
     hub_height=100,
     use_ninja=True,
+    date_from=date_from,
+    date_to=date_to,
 )
-pv_s = PhotoVoltaic("PV South", azimuth=180, use_ninja=True, dof=True)
+pv_s = PhotoVoltaic(
+    "PV South",
+    azimuth=180,
+    use_ninja=True,
+    dof=True,
+    date_from=date_from,
+    date_to=date_to,
+)
 bat_2h = Lithium("2h battery", dof=True, EP_ratio=2)
 bat_4h = Lithium("4h battery", dof=True, EP_ratio=4)
 bat_6h = Lithium("6h battery", dof=True, EP_ratio=6)
@@ -56,7 +67,7 @@ for c in component_list:
     if isinstance(c, PhotoVoltaic):
         pv_s.lifetime = 40
         pv_s.opex_ratio = 0.3
-        pv_s.acdc_ratio = 0.5
+        pv_s.dcac_ratio = 2
 
     if isinstance(c, Lithium):
         c.cycle_efficieny = 0.92

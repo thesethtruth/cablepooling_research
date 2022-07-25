@@ -3,7 +3,7 @@
 # Takenlijst
 - [X] Kosten invullen (bandbreedtes)
 - [x] Technische specs aanpassen
-- [ ] PV clipping losses in programmeren (als standaard uitgaan van ratio van 50%)
+- [X] PV clipping losses in programmeren (als standaard uitgaan van ratio van 50%)
 - [x] Prijzen op basis van https://pro.energytransitionmodel.com/saved_scenarios/12631
 
 ## Technische specs:
