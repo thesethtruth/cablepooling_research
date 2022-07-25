@@ -1,3 +1,5 @@
+from time import sleep
+import traceback
 import uuid
 import pyomo.environ as pyo
 import numpy as np
@@ -5,18 +7,21 @@ from copy import deepcopy as copy
 from LESO.experiments.analysis import (
     gdatastore_put_entry,
     gcloud_upload_experiment_dict,
+    gcloud_upload_log_file,
 )
 
 import LESO
 from LESO.experiments import ema_pyomo_interface
 
 from cablepool_definitions import (
+    move_log_from_active_to_cold,
     lithium_linear_map,
     RESULTS_FOLDER,
     MODEL,
     METRICS,
     COLLECTION,
     OUTPUT_PREFIX,
+    ACTIVE_FOLDER,
 )
 from LESO.finance import (
     determine_total_investment_cost,
@@ -40,9 +45,9 @@ def Handshake(
     # process ema inputs to components
     for component in system.components:
         if isinstance(component, LESO.PhotoVoltaic):
-            component.capex = pv_cost
+            component.capex = {"DC": pv_cost}
         if isinstance(component, LESO.Lithium):
-            component.capex_storage = component.capex_storage * battery_cost
+            component.capex_storage = battery_cost
             component.capex_power = lithium_linear_map(battery_cost)
 
     # generate file name and filepath for storing
@@ -82,7 +87,7 @@ def CablePooling(
 ):
 
     # hand ema_inputs over to the LESO handshake
-    system, filename_export = Handshake(
+    system, filename_export, logfile = Handshake(
         pv_cost=pv_cost,
         battery_cost=battery_cost,
     )
@@ -139,12 +144,23 @@ def CablePooling(
         results = dict()
         results.update(capacities)
         results.update(pi)
-        meta_data = {"filename_export": filename_export}
+        meta_data = {"filename_export": filename_export, "logfile": logfile}
 
     ## Non optimal exit, no results
     else:
         meta_data = {"filename_export": "N/a"}
         results = {metric: np.nan for metric in METRICS}
+
+    # compute the total storage reflux, only exists when optimisation is succesful (therefore hassattr)
+    total_reflux = 0
+    for component in system.components:
+        if isinstance(component, LESO.Storage) and hasattr(component, "reflux"):
+            total_reflux += component.reflux
+    solving_time = system.model.results["solver"][0]["Time"]
+    if solving_time > 500:
+        logger.warn(f"solving took a long time: {int(solving_time)} s")
+    else:
+        logger.info(f"gurobi found the optimum in: {int(solving_time)} s")
 
     ## In any case
     meta_data.update(
@@ -152,6 +168,7 @@ def CablePooling(
             "solving_time": system.model.results["solver"][0]["Time"],
             "solver_status": system.model.results["solver"][0]["status"].__str__(),
             "solver_status_code": system.model.results["solver"][0]["Return code"],
+            "battery_reflux": total_reflux,
         }
     )
 
@@ -172,8 +189,9 @@ def CablePooling(
         try:
             gdatastore_put_entry(COLLECTION, db_entry)
             succesful = True
-        except:
-            pass
+        except BaseException as e:
+            sleep(3)
+            logger.error(traceback.format_exc())
 
     # put system.results to google cloud, keeps retrying when internet is down.
     succesful = False
@@ -181,7 +199,20 @@ def CablePooling(
         try:
             gcloud_upload_experiment_dict(system.results, COLLECTION, filename_export)
             succesful = True
-        except:
-            pass
+        except BaseException as e:
+            sleep(3)
+            logger.error(traceback.format_exc())
+
+    # put gurobi logfile to google cloud, which is located at the project folder in our case.
+    # also moves this file from active storage (in the repo) to the big storage disk.
+    succesful = False
+    while not succesful:
+        try:
+            gcloud_upload_log_file(ACTIVE_FOLDER / logfile, COLLECTION, logfile)
+            succesful = True
+        except BaseException as e:
+            sleep(3)
+            logger.error(traceback.format_exc())
+    move_log_from_active_to_cold(file_name=logfile)
 
     return results

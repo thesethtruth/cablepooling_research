@@ -10,9 +10,12 @@ from cablepool_postprocess_tools import (
     gcloud_read_experiment,
     pv_col,
     wind_col,
+    # bat1_col,
     bat2_col,
+    bat4_col,
     bat6_col,
-    bat10_col,
+    bat8_col,
+    bat12_col,
     total_bat_col,
     batcols
 )
@@ -24,29 +27,27 @@ RESULT_FOLDER = FOLDER.parent / "results"
 IMAGE_FOLDER = FOLDER / "images"
 RESOURCE_FOLDER = FOLDER / "resources"
 
-COLLECTION = "cablepooling"
-RUN_ID = "2110_v2"
-APPROACH = "subsidy"
+COLLECTION = "cablepooling_paper"
+RUN_ID = "first_run_1024"
 
 
 #%% read in data
 df = get_data_from_db(
     collection=COLLECTION,
     run_id=RUN_ID,
-    approach=APPROACH,
     force_refresh=False,
     # filter=filter,
 )
 
 exp = gcloud_read_experiment(
     collection=COLLECTION,
-    experiment_id=df.filename_export.iat[189]
+    experiment_id=df.filename_export.iat[23]
 )
 
 ## solar deployment
 subset = df[df[pv_col]!=0]
 idx = subset[pv_col].argmin()
-max_solar_price = subset.loc[subset.index[idx], "pv_cost_absolute"]
+max_solar_price = subset.loc[subset.index[idx], "pv_cost"]
 print(f"Solar deployment starts at: {round(max_solar_price,0)} €/kWp")
 
 #%% Deployment vs absolut cost scatter
@@ -55,7 +56,7 @@ fig, ax = plt.subplots()
 fig, ax = default_matplotlib_style(fig, ax)
 fig.set_size_inches(6,2.2)
 sns.scatterplot(
-    x="pv_cost_absolute",
+    x="pv_cost",
     y=pv_col,
     size='curtailment',
     hue='curtailment',
@@ -122,8 +123,8 @@ fig, ax = default_matplotlib_style(fig, ax)
 fig.set_size_inches(5,3)
 
 sns.scatterplot(
-    x="pv_cost_absolute",
-    y="battery_power_cost_absolute",
+    x="pv_cost",
+    y="battery_cost",
     size=pv_col,
     hue=pv_col,
     data=df,

@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     run_ID = input("Please enter the run ID:")
     initialized_model = partial(CablePooling, run_ID=run_ID)
-    model = Model(name=f"{COLLECTION}", function=initialized_model)
+    model = Model(name=f"{COLLECTION.split('_')[0]}", function=initialized_model)
 
     # uncertainties / scenarios
     model.uncertainties = [
@@ -33,14 +33,11 @@ if __name__ == "__main__":
     model.outcomes = [ScalarOutcome(metric) for metric in METRICS]
 
     # run experiments
-    with MultiprocessingEvaluator(model, n_processes=10) as evaluator:
+    with MultiprocessingEvaluator(model, n_processes=5) as evaluator:
         results = evaluator.perform_experiments(
-            scenarios=20, uncertainty_sampling=FullFactorialSampler
+            scenarios=32, uncertainty_sampling=FullFactorialSampler()
         )
-
-    # with SequentialEvaluator(model) as evaluator:
-    #     results = evaluator.perform_experiments(scenarios=5, policies=2)
-
+    
     # save results
     results_file_name = RESULTS_FOLDER / f"{COLLECTION}_ema_results_{run_ID}.tar.gz"
     save_results(results, file_name=results_file_name)

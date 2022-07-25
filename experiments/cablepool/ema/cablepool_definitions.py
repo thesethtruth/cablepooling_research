@@ -2,6 +2,9 @@
 from pathlib import Path
 import LESO
 from google.cloud.exceptions import Conflict
+from functools import partial
+from LESO.experiments.analysis import move_log_from_active_to_cold
+
 
 #%%
 # cost_range = (lower, upper)
@@ -17,6 +20,15 @@ MODEL_FOLDER = Path(__file__).parent.parent / "model"
 RESULTS_FOLDER = Path(__file__).parent.parent / "results"
 RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
 
+ACTIVE_FOLDER = Path(__file__).parent
+
+move_log_from_active_to_cold = partial(
+    move_log_from_active_to_cold,
+    active_folder=ACTIVE_FOLDER,
+    cold_folder=RESULTS_FOLDER,
+)
+
+
 # create bucket if not already exist
 if False:
     try:
@@ -30,6 +42,7 @@ METRICS = [
     # components
     "PV South installed capacity",
     "Nordex N100 2500 installed capacity",
+    "1h battery installed capacity",
     "2h battery installed capacity",
     "4h battery installed capacity",
     "6h battery installed capacity",

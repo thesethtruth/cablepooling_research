@@ -51,30 +51,33 @@ pv_s = PhotoVoltaic(
     dof=True,
     date_from=date_from,
     date_to=date_to,
+    lifetime=40,
+    opex_ratio=0.023,
+    dcac_ratio=2,
+    capex={"DC": 0.2},
 )
+bat_1h = Lithium("1h battery", dof=True, EP_ratio=1)
 bat_2h = Lithium("2h battery", dof=True, EP_ratio=2)
 bat_4h = Lithium("4h battery", dof=True, EP_ratio=4)
 bat_6h = Lithium("6h battery", dof=True, EP_ratio=6)
 bat_8h = Lithium("8h battery", dof=True, EP_ratio=8)
 bat_12h = Lithium("12h battery", dof=True, EP_ratio=12)
 final = FinalBalance(name="curtailment_underload")
-component_list = [pv_s, wind, bat_2h, bat_4h, bat_6h, bat_8h, bat_12h, final, grid]
+component_list = [pv_s, wind, bat_1h, bat_2h, bat_4h, bat_6h, bat_8h, bat_12h, final, grid]
 
 #%%
 # update the values to new values from DEA
 for c in component_list:
 
-    if isinstance(c, PhotoVoltaic):
-        pv_s.lifetime = 40
-        pv_s.opex_ratio = 0.3
-        pv_s.dcac_ratio = 2
-
     if isinstance(c, Lithium):
-        c.cycle_efficieny = 0.92
+        c.capex_storage = 0.046
+        c.capex_power = 40e-3
+        c.cycle_efficieny = 92e-3
         c.discharge_rate = 0.999958
         c.lifetime = 25
-        c._opex = 450e-3
+        c._opex = 0.54e-3 / c.EP_ratio
         c.variable_cost = 1.8e-6
+        print(f"battery ({c.EP_ratio}h): {c.opex * c.EP_ratio} €/Wh")
 
 #%% add the components to the system
 component_list = [pv_s, wind, bat_2h, bat_4h, bat_6h, bat_8h, bat_12h, final, grid]
