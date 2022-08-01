@@ -63,7 +63,18 @@ bat_6h = Lithium("6h battery", dof=True, EP_ratio=6)
 bat_8h = Lithium("8h battery", dof=True, EP_ratio=8)
 bat_12h = Lithium("12h battery", dof=True, EP_ratio=12)
 final = FinalBalance(name="curtailment_underload")
-component_list = [pv_s, wind, bat_1h, bat_2h, bat_4h, bat_6h, bat_8h, bat_12h, final, grid]
+component_list = [
+    pv_s,
+    wind,
+    bat_1h,
+    bat_2h,
+    bat_4h,
+    bat_6h,
+    bat_8h,
+    bat_12h,
+    final,
+    grid,
+]
 
 #%%
 # update the values to new values from DEA
@@ -77,10 +88,8 @@ for c in component_list:
         c.lifetime = 25
         c._opex = 0.54e-3 / c.EP_ratio
         c.variable_cost = 1.8e-6
-        print(f"battery ({c.EP_ratio}h): {c.opex * c.EP_ratio} €/Wh")
 
 #%% add the components to the system
-component_list = [pv_s, wind, bat_2h, bat_4h, bat_6h, bat_8h, bat_12h, final, grid]
 system.add_components(component_list)
 #%% Pickle the model
 

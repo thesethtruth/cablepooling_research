@@ -10,7 +10,7 @@ RESOURCE_FOLDER.mkdir(exist_ok=True)
 ## pointers
 pv_col = "PV South installed capacity"
 wind_col = "Nordex N100 2500 installed capacity"
-# bat1_col = "1h battery installed capacity"
+bat1_col = "1h battery installed capacity"
 bat2_col = "2h battery installed capacity"
 bat4_col = "4h battery installed capacity"
 bat6_col = "6h battery installed capacity"
@@ -18,7 +18,7 @@ bat8_col = "8h battery installed capacity"
 bat12_col = "12h battery installed capacity"
 
 total_bat_col = "total_storage_energy"
-batcols = [bat6_col, bat4_col, bat6_col, bat8_col, bat12_col]
+batcols = [bat1_col, bat2_col, bat4_col, bat6_col, bat8_col, bat12_col]
 bivar_tech_dict = {"PV": pv_col, "wind": wind_col, "battery": total_bat_col}
 
 #%% load in results
@@ -51,8 +51,8 @@ def get_data_from_db(collection, run_id, force_refresh=False, filter=None):
         # hard code the values for convience
         if True:
             spec_yield_pv = (
-                sum(exp.components.pv1.state["power [+]"])
-                / exp.components.pv1.settings.installed
+                sum(exp.components.pv2.state["power [+]"])
+                / exp.components.pv2.settings.installed
             )
             tot_yield_wind = sum(exp.components.wind1.state["power [+]"])
         else:
@@ -67,7 +67,12 @@ def get_data_from_db(collection, run_id, force_refresh=False, filter=None):
         db["total_installed_capacity"] = db[pv_col] + db[wind_col]
         db["total_storage_energy"] = db[batcols].sum(axis=1)
         db["total_storage_power"] = (
-            db[bat2_col] / 2 + db[bat4_col] / 4 + db[bat6_col] / 6 + db[bat8_col] / 8 + db[bat12_col] / 12
+            db[bat1_col]
+            + db[bat2_col] / 2
+            + db[bat4_col] / 4
+            + db[bat6_col] / 6
+            + db[bat8_col] / 8
+            + db[bat12_col] / 12
         )
         switch = lambda x: "<1" if x < 1 else ">1"
         db["ratio"] = [switch(x) for x in db[pv_col] / 10]

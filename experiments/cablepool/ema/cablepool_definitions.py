@@ -36,7 +36,12 @@ if False:
     except Conflict as c:
         print(c)
 
-MODEL = MODEL_FOLDER / "cablepooling_paper.pkl"
+
+MODELS = {
+    "high_ratio": MODEL_FOLDER / "cablepooling_paper.pkl",
+    "current_ratio": MODEL_FOLDER / "cablepooling_paper_lower_dcac.pkl",
+    "both_ratios": MODEL_FOLDER / "cablepooling_paper_both.pkl",
+}
 
 METRICS = [
     # components
@@ -77,11 +82,11 @@ def linear_map_2050(value):
 
 if __name__ == "__main__":
     # use this to easily generate the metrics for installed capacity
-    if False:
+    if True:
         ref_system = LESO.System.read_pickle(MODEL)
         m = []
         for c in ref_system.components:
             if not isinstance(c, (LESO.FinalBalance, LESO.ETMdemand)):
                 out = c.name + " installed capacity"
                 m.append(out)
-        print(m)
+                print(out)
