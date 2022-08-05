@@ -17,8 +17,8 @@ from cablepool_definitions import (
     move_log_from_active_to_cold,
     lithium_linear_map,
     RESULTS_FOLDER,
-    MODEL,
     METRICS,
+    MODELS,
     COLLECTION,
     OUTPUT_PREFIX,
     ACTIVE_FOLDER,
@@ -36,7 +36,7 @@ logger = get_module_logger(__name__)
 def Handshake(
     pv_cost=None,
     battery_cost=None,
-    model=MODEL,
+    model=None,
 ):
 
     # initiate System component
@@ -83,13 +83,15 @@ def Handshake(
 def CablePooling(
     pv_cost=1,
     battery_cost=1,
+    dc_ratio=None,
     run_ID=None,
 ):
 
+    model = MODELS[dc_ratio]
+
     # hand ema_inputs over to the LESO handshake
     system, filename_export, logfile = Handshake(
-        pv_cost=pv_cost,
-        battery_cost=battery_cost,
+        pv_cost=pv_cost, battery_cost=battery_cost, model=model
     )
 
     # check for optimalitiy before trying to access all information

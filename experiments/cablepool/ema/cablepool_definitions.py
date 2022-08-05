@@ -5,7 +5,6 @@ from google.cloud.exceptions import Conflict
 from functools import partial
 from LESO.experiments.analysis import move_log_from_active_to_cold
 
-
 #%%
 # cost_range = (lower, upper)
 PV_COST_RANGE = (170e-3, 420e-3)
@@ -45,7 +44,8 @@ MODELS = {
 
 METRICS = [
     # components
-    "PV South installed capacity",
+    "PV high DC ratio installed capacity",
+    "PV low DC ratio installed capacity",
     "Nordex N100 2500 installed capacity",
     "1h battery installed capacity",
     "2h battery installed capacity",
@@ -80,13 +80,20 @@ def linear_map_2050(value):
     return value
 
 
-if __name__ == "__main__":
-    # use this to easily generate the metrics for installed capacity
-    if True:
-        ref_system = LESO.System.read_pickle(MODEL)
-        m = []
-        for c in ref_system.components:
-            if not isinstance(c, (LESO.FinalBalance, LESO.ETMdemand)):
-                out = c.name + " installed capacity"
-                m.append(out)
-                print(out)
+verify_metrics = []
+for case in MODELS.keys():
+    ref_system = LESO.System.read_pickle(MODELS[case])
+    m = []
+    for c in ref_system.components:
+        if not isinstance(c, (LESO.FinalBalance, LESO.ETMdemand)):
+            out = c.name + " installed capacity"
+            m.append(out)
+    verify_metrics.append(m)
+
+assert all(
+    x == verify_metrics[0] for x in verify_metrics
+), "All models in a run should produce the same output!"
+
+# use this to easily generate the metrics for installed capacity
+if True:
+    print(m)

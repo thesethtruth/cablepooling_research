@@ -4,8 +4,7 @@ from LESO import PhotoVoltaic, Wind, Lithium, Grid, FinalBalance
 import pandas as pd
 from pathlib import Path
 
-from LESO.leso_logging import get_module_logger, log_to_stderr
-from logging import DEBUG
+from LESO.leso_logging import log_to_stderr
 
 log_to_stderr()
 
@@ -44,8 +43,8 @@ wind = Wind(
     date_from=date_from,
     date_to=date_to,
 )
-pv_s = PhotoVoltaic(
-    "PV South",
+pv_high = PhotoVoltaic(
+    "PV high DC ratio",
     azimuth=180,
     use_ninja=True,
     dof=True,
@@ -56,6 +55,19 @@ pv_s = PhotoVoltaic(
     dcac_ratio=2,
     capex={"DC": 0.2},
 )
+pv_low = PhotoVoltaic(
+    "PV low DC ratio",
+    azimuth=180,
+    use_ninja=True,
+    dof=False,  # False  ---!
+    installed=0,  # also zero  ---! --> disabled
+    date_from=date_from,
+    date_to=date_to,
+    lifetime=40,
+    opex_ratio=2.6 / 100,  # unique for this value
+    dcac_ratio=1 / 0.7,  # ACDC ratio 0.7
+    capex={"DC": 0.2},
+)
 bat_1h = Lithium("1h battery", dof=True, EP_ratio=1)
 bat_2h = Lithium("2h battery", dof=True, EP_ratio=2)
 bat_4h = Lithium("4h battery", dof=True, EP_ratio=4)
@@ -63,8 +75,10 @@ bat_6h = Lithium("6h battery", dof=True, EP_ratio=6)
 bat_8h = Lithium("8h battery", dof=True, EP_ratio=8)
 bat_12h = Lithium("12h battery", dof=True, EP_ratio=12)
 final = FinalBalance(name="curtailment_underload")
+
 component_list = [
-    pv_s,
+    pv_high,
+    pv_low,
     wind,
     bat_1h,
     bat_2h,

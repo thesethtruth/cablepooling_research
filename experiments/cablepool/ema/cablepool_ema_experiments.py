@@ -4,7 +4,6 @@ from ema_workbench import (
     RealParameter,
     CategoricalParameter,
     ScalarOutcome,
-    Constant,
     Model,
     ema_logging,
     MultiprocessingEvaluator,
@@ -31,15 +30,22 @@ if __name__ == "__main__":
         RealParameter("pv_cost", *PV_COST_RANGE),
         RealParameter("battery_cost", *BATTERY_ENERGY_COST_RANGE),
     ]
-    model.levers[CategoricalParameter("dc_ratio", RATIO_SCENARIOS)]
+    model.levers = [CategoricalParameter("dc_ratio", RATIO_SCENARIOS)]
     # specify outcomes
     model.outcomes = [ScalarOutcome(metric) for metric in METRICS]
 
+    debug = True
     # run experiments
-    with MultiprocessingEvaluator(model, n_processes=6) as evaluator:
-        results = evaluator.perform_experiments(
-            scenarios=32, policies=2, uncertainty_sampling=FullFactorialSampler()
-        )
+    if debug is False:
+        with MultiprocessingEvaluator(model, n_processes=6) as evaluator:
+            results = evaluator.perform_experiments(
+                scenarios=32, policies=2, uncertainty_sampling=FullFactorialSampler()
+            )
+    else:
+        with SequentialEvaluator(model) as evaluator:
+            results = evaluator.perform_experiments(
+                scenarios=2, policies=2, uncertainty_sampling=FullFactorialSampler()
+            )
 
     # save results
     results_file_name = RESULTS_FOLDER / f"{COLLECTION}_ema_results_{run_ID}.tar.gz"
