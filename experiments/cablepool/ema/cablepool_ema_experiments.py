@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # specify outcomes
     model.outcomes = [ScalarOutcome(metric) for metric in METRICS]
 
-    debug = True
+    debug = False
     # run experiments
     if debug is False:
         with MultiprocessingEvaluator(model, n_processes=6) as evaluator:
