@@ -8,7 +8,8 @@ RESOURCE_FOLDER = FOLDER / "resources"
 RESOURCE_FOLDER.mkdir(exist_ok=True)
 
 ## pointers
-pv_col = "PV South installed capacity"
+pv_col = "PV high DC ratio installed capacity"
+pv_col = "PV low DC ratio installed capacity"
 wind_col = "Nordex N100 2500 installed capacity"
 bat1_col = "1h battery installed capacity"
 bat2_col = "2h battery installed capacity"
