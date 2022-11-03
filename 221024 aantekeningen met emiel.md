@@ -1,10 +1,12 @@
 # Takenlijst figuurtjes
 
-Er zijn 3 experimenten
-1. Hoge DCAC ratio (PV south) == 2
-2. Lage DCAC ratio (PV lower ratio)  == 1/0.7
-3. Beide (PV lower + PV higher)
+Er zijn 3 experimenten, met 2 `run_id`s
 
+| Experiment beschrijving | `run_id`                                    | `pv_cols`                                                                    | `dc_ratio` |
+| ----------------------- | ------------------------------------------- | ---------------------------------------------------------------------------- | ---------- |
+| Alleen hoge DCAC ratio  | `220725_cablepooling_1024`                  | `PV South installed capacity`                                                | 2          |
+| Alleen lage DCAC ratio  | `220805_cablepooling_current_both_dcratios` | `PV low DC ratio installed capacity`                                         | 1/0.7      |
+| Beide DCAC ratios       | `220805_cablepooling_current_both_dcratios` | `PV low DC ratio installed capacity` + `PV high DC ratio installed capacity` | 2 & 1/0.7  |
 
 ## Daarvan wilt Emiel de volgende plotjes
 ### Fig. 3. Technology deployment plotted against a single technology capacity cost
