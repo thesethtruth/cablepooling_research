@@ -143,7 +143,7 @@ def add_additional_data(experiment: str, force_refresh: bool = False):
         + db[bat8_col] / 8
         + db[bat12_col] / 12
     )
-    db["pv_cost_dc"] = db["pv_cost"] / pv_dict[mapping[experiment][0]]["dc_ratio"]
+    db["pv_cost_ac"] = db["pv_cost"] * pv_dict[mapping[experiment][0]]["dc_ratio"]
 
     # switch that determines the ratio between PV and wind
     switch = lambda x: "<1" if x < 1 else ">1"
@@ -153,8 +153,8 @@ def add_additional_data(experiment: str, force_refresh: bool = False):
 
 
 #%%
+if __name__ == "__main__":
+    update_pv_dict_with_specific_yield(pv_dict=pv_dict)
 
-update_pv_dict_with_specific_yield(pv_dict=pv_dict)
-
-for experiment in experiments:
-    add_additional_data(experiment=experiment)
+    for experiment in experiments:
+        add_additional_data(experiment=experiment)

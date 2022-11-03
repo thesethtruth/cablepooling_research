@@ -5,199 +5,206 @@ from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from cablepool_postprocess_tools import (
-    get_data_from_db,
-    gcloud_read_experiment,
-    pv_col,
-    wind_col,
-    bat1_col,
-    bat2_col,
-    bat4_col,
-    bat6_col,
-    bat8_col,
-    bat12_col,
+from cablepool_postprocess_data import (
     total_bat_col,
-    batcols,
+    pv_dc_col,
 )
 from LESO.plotting import default_matplotlib_save, default_matplotlib_style
+from LESO.plotting import crop_transparency_top_bottom
+
 
 #%% constants
 FOLDER = Path(__file__).parent
 RESULT_FOLDER = FOLDER.parent / "results"
-IMAGE_FOLDER = FOLDER / "images"
 RESOURCE_FOLDER = FOLDER / "resources"
 
-COLLECTION = "cablepooling_paper"
-RUN_ID = "220806_cablepooling_bothdcs"
 
+#%% open loop for all experiments
 
-#%% read in data
-df = get_data_from_db(
-    collection=COLLECTION,
-    run_id=RUN_ID,
-    force_refresh=False,
-    # filter=filter,
-)
+from cablepool_postprocess_data import experiments
 
-exp = gcloud_read_experiment(
-    collection=COLLECTION, experiment_id=df.filename_export.iat[23]
-)
+for experiment in experiments:
 
-## solar deployment
-subset = df[df[pv_col] != 0]
-idx = subset[pv_col].argmin()
-max_solar_price = subset.loc[subset.index[idx], "pv_cost"]
-print(f"Solar deployment starts at: {round(max_solar_price,0)} €/kWp")
+    dataset_filename = f"{experiment}_additional.pkl"
+    IMAGE_FOLDER = FOLDER / "images" / experiment
+    IMAGE_FOLDER.mkdir(exist_ok=True, parents=True)
 
-#%% Deployment vs absolut cost scatter
+    # read in data
+    df = pd.read_pickle(RESOURCE_FOLDER / dataset_filename)
 
-fig, ax = plt.subplots()
-fig, ax = default_matplotlib_style(fig, ax)
-fig.set_size_inches(6, 2.2)
-sns.scatterplot(
-    x="pv_cost",
-    y=pv_col,
-    size="curtailment",
-    hue="curtailment",
-    data=df,
-    palette="Reds",
-    ax=ax,
-    edgecolor="black",
-)
+    ##  fig (3) [a] PV deployment vs PV cost with battery Z-index -----------------------------------------------------
 
-ax.set_ylabel("deployed PV\ncapacity (MW)")
-ax.set_xlabel("PV capacity cost (€/kWp)")
-
-ax.legend(frameon=False, title="Curtailment (MWh)")
-
-default_matplotlib_save(
-    fig, IMAGE_FOLDER / "paper_cablepool_init_pv_deployment_vs_cost.png"
-)
-
-#%% relative curtailment
-fig, ax = plt.subplots()
-fig, ax = default_matplotlib_style(fig, ax)
-fig.set_size_inches(3, 3)
-
-sns.scatterplot(
-    x="total_installed_capacity",
-    y="relative_curtailment",
-    hue=total_bat_col,
-    data=df,
-    palette="Reds",
-    ax=ax,
-    edgecolor="black",
-)
-
-ax.set_xlabel("total deployed capacity (MW)")
-
-ax.set_ylabel("relative curtailment (%)")
-
-ax.legend(
-    bbox_to_anchor=(0.5, -0.35),
-    loc=9,
-    borderaxespad=0.0,
-    frameon=True,
-    title="deployed battery capacity (MWh)",
-    ncol=3,
-)
-
-default_matplotlib_save(
-    fig, IMAGE_FOLDER / "paper_cablepool_rel_curtailment_vs_deployment.png"
-)
-
-relplot_ticks = ax.get_xticks()
-relplot_labels = ax.get_xticklabels()
-
-#%% absolute curtailment
-fig, ax = plt.subplots()
-fig, ax = default_matplotlib_style(fig, ax)
-fig.set_size_inches(3, 3)
-
-sns.scatterplot(
-    x="total_installed_capacity",
-    y="curtailment",
-    hue=total_bat_col,
-    data=df,
-    palette="Reds",
-    ax=ax,
-    edgecolor="black",
-)
-
-
-ax.set_xlabel("total deployed capacity (MW)")
-ax.set_xticks(relplot_ticks)
-ax.set_xticklabels(relplot_labels)
-ax.set_ylabel("curtailment (MWh)")
-
-ax.legend(
-    bbox_to_anchor=(0.5, -0.35),
-    loc=9,
-    borderaxespad=0.0,
-    frameon=True,
-    title="deployed battery capacity (MWh)",
-    ncol=3,
-)
-
-default_matplotlib_save(
-    fig, IMAGE_FOLDER / "paper_cablepool_abs_curtailment_vs_deployment.png"
-)
-#%% bi-variate scatterplot
-
-fig, ax = plt.subplots()
-fig, ax = default_matplotlib_style(fig, ax)
-fig.set_size_inches(5, 3)
-
-sns.scatterplot(
-    x="pv_cost",
-    y="battery_cost",
-    size=pv_col,
-    hue=pv_col,
-    data=df,
-    palette="Reds",
-    sizes=(10, 40),
-    ax=ax,
-    edgecolor="black",
-)
-
-ax.set_ylabel("battery power\ncapacity cost (€/kW)")
-ax.set_xlabel("PV capacity cost (€/kWp)")
-ax.legend(
-    bbox_to_anchor=(0.5, -0.4),
-    loc=9,
-    borderaxespad=0.0,
-    frameon=True,
-    title="Deployed PV capacity (MW)",
-    ncol=6,
-)
-
-default_matplotlib_save(
-    fig, IMAGE_FOLDER / "paper_cablepool_init_bivariate_deployment.png"
-)
-# %%
-timeseries = exp.components.pv2.state["power [+]"]
-timeseries = [i / max(timeseries) for i in timeseries]
-
-fig, ax = plt.subplots()
-fig, ax = default_matplotlib_style(fig, ax)
-fig.set_size_inches(4, 2)
-ax.hist(
-    timeseries,
-    color="firebrick",
-    alpha=0.5,
-    bins=30,
-)
-ax.legend(frameon=False)
-ax.set_ylabel("frequency (h/y)")
-ax.set_ylim([0, 500])
-ax.set_xlabel("capacity factor [-]")
-ax.set_xlim([0, 1])
-default_matplotlib_save(fig, IMAGE_FOLDER / "paper_cablepool_PV_histogram.png")
-
-#%%
-if input("Crop the images in this folder? [y/n]") == "y":
-    from LESO.plotting import crop_transparency_top_bottom
-
-    crop_transparency_top_bottom(
-        folder_to_crop=IMAGE_FOLDER, file_ext_to_crop="png", override_original=True
+    fig, ax = plt.subplots()
+    fig, ax = default_matplotlib_style(fig, ax)
+    fig.set_size_inches(6, 2.2)
+    sns.scatterplot(
+        x="pv_cost",
+        y=pv_dc_col,
+        size=total_bat_col,
+        hue=total_bat_col,
+        data=df,
+        palette="Greens",
+        ax=ax,
+        edgecolor="black",
     )
+
+    ax.set_ylabel("deployed PV\ncapacity (MWp)")
+    ax.set_xlabel("PV capacity cost (€/kWp)")
+
+    ax.legend(frameon=False, title="deployed battery capacity (MWh)")
+
+    default_matplotlib_save(fig, IMAGE_FOLDER / "pv_deployment_vs_cost_z_battery.png")
+
+    ##  fig (3) [b] PV deployment vs PV cost with battery Z-index  ------------------------------------------------------
+
+    fig, ax = plt.subplots()
+    fig, ax = default_matplotlib_style(fig, ax)
+    fig.set_size_inches(6, 2.2)
+    sns.scatterplot(
+        x="battery_cost",
+        y=total_bat_col,
+        size=pv_dc_col,
+        hue=pv_dc_col,
+        data=df,
+        palette="YlOrBr",
+        ax=ax,
+        edgecolor="black",
+    )
+
+    ax.set_ylabel("deployed battery capacity (MWh)")
+    ax.set_xlabel("battery energy capacity cost (€/kWh)")
+
+    ax.legend(frameon=False, title="deployed PV\ncapacity (MWp)")
+
+    default_matplotlib_save(fig, IMAGE_FOLDER / "battery_deployment_vs_cost_z_pv.png")
+
+    ##  fig (4) [a] battery cost vs PV cost with PV Z-index  ------------------------------------------------------
+
+    fig, ax = plt.subplots()
+    fig, ax = default_matplotlib_style(fig, ax)
+    fig.set_size_inches(5, 3)
+
+    sns.scatterplot(
+        x="pv_cost",
+        y="battery_cost",
+        size=pv_dc_col,
+        hue=pv_dc_col,
+        data=df,
+        palette="YlOrBr",
+        sizes=(10, 40),
+        ax=ax,
+        edgecolor="black",
+    )
+
+    ax.set_ylabel("battery power\ncapacity cost (€/kW)")
+    ax.set_xlabel("PV capacity cost (€/kWp)")
+    ax.legend(
+        bbox_to_anchor=(0.5, -0.4),
+        loc=9,
+        borderaxespad=0.0,
+        frameon=True,
+        title="Deployed PV capacity (MWp)",
+        ncol=6,
+    )
+    default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_pv.png")
+
+    ##  fig (4) [b] battery cost vs PV cost with battery Z-index  ------------------------------------------------------
+
+    fig, ax = plt.subplots()
+    fig, ax = default_matplotlib_style(fig, ax)
+    fig.set_size_inches(5, 3)
+
+    sns.scatterplot(
+        x="pv_cost",
+        y="battery_cost",
+        size=total_bat_col,
+        hue=total_bat_col,
+        data=df,
+        palette="Greens",
+        sizes=(10, 40),
+        ax=ax,
+        edgecolor="black",
+    )
+
+    ax.set_ylabel("battery power\ncapacity cost (€/kW)")
+    ax.set_xlabel("PV capacity cost (€/kWp)")
+    ax.legend(
+        bbox_to_anchor=(0.5, -0.4),
+        loc=9,
+        borderaxespad=0.0,
+        frameon=True,
+        title="deployed battery capacity (MWh)",
+        ncol=6,
+    )
+    default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_battery.png")
+
+    ##  fig (5) [a] relative curtailment vs additional PV Z index battery ------------------------------------------------------
+    fig, ax = plt.subplots()
+    fig, ax = default_matplotlib_style(fig, ax)
+    fig.set_size_inches(3, 3)
+
+    sns.scatterplot(
+        x=pv_dc_col,
+        y="relative_curtailment",
+        hue=total_bat_col,
+        data=df,
+        palette="Greens",
+        ax=ax,
+        edgecolor="black",
+    )
+
+    ax.set_xlabel("additional PV capacity (MWp)")
+    ax.set_ylabel("relative curtailment (%)")
+
+    ax.legend(
+        bbox_to_anchor=(0.5, -0.35),
+        loc=9,
+        borderaxespad=0.0,
+        frameon=True,
+        title="deployed battery capacity (MWh)",
+        ncol=3,
+    )
+
+    default_matplotlib_save(
+        fig, IMAGE_FOLDER / "rel_curtailment_vs_PV_deployment_z_battery.png"
+    )
+
+    relplot_ticks = ax.get_xticks()
+    relplot_labels = ax.get_xticklabels()
+
+    ##  fig (5) [b] absolute curtailment vs additional PV Z index battery ------------------------------------------------------
+
+    fig, ax = plt.subplots()
+    fig, ax = default_matplotlib_style(fig, ax)
+    fig.set_size_inches(3, 3)
+
+    sns.scatterplot(
+        x=pv_dc_col,
+        y="curtailment",
+        hue=total_bat_col,
+        data=df,
+        palette="Greens",
+        ax=ax,
+        edgecolor="black",
+    )
+
+    ax.set_xlabel("additional PV capacity (MWp)")
+    ax.set_xticks(relplot_ticks)
+    ax.set_xticklabels(relplot_labels)
+    ax.set_ylabel("curtailment (MWh)")
+
+    ax.legend(
+        bbox_to_anchor=(0.5, -0.35),
+        loc=9,
+        borderaxespad=0.0,
+        frameon=True,
+        title="deployed battery capacity (MWh)",
+        ncol=3,
+    )
+
+    default_matplotlib_save(fig, IMAGE_FOLDER / "abs_curtailment_vs_deployment.png")
+
+    if False:
+        crop_transparency_top_bottom(
+            folder_to_crop=IMAGE_FOLDER, file_ext_to_crop="png", override_original=True
+        )
