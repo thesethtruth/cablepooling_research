@@ -102,7 +102,8 @@
 }
 
 </style>
-        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.css" integrity="sha384-yFRtMMDnQtDRO8rLpMIKrtPCD5jdktao2TV19YiZYWMDkUR5GQZR/NOVTdquEx1j" crossorigin="anonymous">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
 <style>
@@ -153,49 +154,57 @@
 <h2 id="daarvan-wilt-emiel-de-volgende-plotjes">Daarvan wilt Emiel de volgende plotjes</h2>
 <h3 id="fig-3-technology-deployment-plotted-against-a-single-technology-capacity-cost">Fig. 3. Technology deployment plotted against a single technology capacity cost</h3>
 <pre><code>(a) Deployment of solar PV on the y-axis and batteries indicated by colored dots against solar PV capacity cost on the x-axis
+
+
+(b) Deployment of batteries on the y-axis and solar PV indicated by colored dots against battery capacity cost on the x-axis
 </code></pre>
-<p><img src="file:///d:\Users\WIES4\Documents\00projecten\PAPER\imgs%5Creport_cablepool_cheapbat_pv_deployment_vs_cost.png" alt=""></p>
 <ul class="contains-task-list">
-<li class="task-list-item">
-<p><input class="task-list-item-checkbox" disabled="" type="checkbox"> Palette to green</p>
-<p>(b) Deployment of batteries on the y-axis and solar PV indicated by colored dots against battery capacity cost on the x-axis
-<img src="file:///d:\Users\WIES4\Documents\00projecten\PAPER\imgs\report_cablepool_cheapbat_bat_deployment_vs_cost.png" alt=""></p>
-</li>
-<li class="task-list-item">
-<p><input class="task-list-item-checkbox" disabled="" type="checkbox"> Palette to yellow</p>
-</li>
-<li class="task-list-item">
-<p><input class="task-list-item-checkbox" disabled="" type="checkbox"> Change the x-axis to battery capacity cost regardless of the hour configuration (NOT 6h but €/kWh)</p>
-</li>
-<li class="task-list-item">
-<p><input class="task-list-item-checkbox" disabled="" type="checkbox"> Add top x-axis for the 2h battery capacity cost in €/kWh</p>
-</li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"> Add top x-axis for the 2h battery capacity cost in €/kWh</li>
 </ul>
+<pre><code class="language-python"><div><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt
+
+fig = plt.figure()
+ax1 = fig.add_subplot(<span class="hljs-number">111</span>)
+ax2 = ax1.twiny()
+
+X = np.linspace(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1000</span>)
+Y = np.cos(X*<span class="hljs-number">20</span>)
+
+ax1.plot(X,Y)
+ax1.set_xlabel(<span class="hljs-string">r&quot;Original x-axis: $X$&quot;</span>)
+
+new_tick_locations = np.array([<span class="hljs-number">.2</span>, <span class="hljs-number">.5</span>, <span class="hljs-number">.9</span>])
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">tick_function</span>(<span class="hljs-params">X</span>):</span>
+    V = <span class="hljs-number">1</span>/(<span class="hljs-number">1</span>+X)
+    <span class="hljs-keyword">return</span> [<span class="hljs-string">&quot;%.3f&quot;</span> % z <span class="hljs-keyword">for</span> z <span class="hljs-keyword">in</span> V]
+
+ax2.set_xlim(ax1.get_xlim())
+ax2.set_xticks(new_tick_locations)
+ax2.set_xticklabels(tick_function(new_tick_locations))
+ax2.set_xlabel(<span class="hljs-string">r&quot;Modified x-axis: $1/(1+X)$&quot;</span>)
+plt.show()
+</div></code></pre>
 <h3 id="fig-4-technology-deployment-indicated-by-colored-dots-plotted-against-both-solar-pv-and-battery-capacity-cost">Fig. 4. Technology deployment indicated by colored dots plotted against both solar PV and battery capacity cost</h3>
 <pre><code>(a) Deployment of solar PV indicated by colored dots against both solar PV and battery capacity cost
+(b) Deployment of batteries indicated by colored dots against both solar PV and battery capacity cost
 </code></pre>
-<p><img src="file:///d:\Users\WIES4\Documents\00projecten\PAPER\imgs%5Creport_cablepool_cheapbat_bivariate_deployment.png" alt=""></p>
-<pre><code>(b) Deployment of batteries indicated by colored dots against both solar PV and battery capacity cost
-</code></pre>
-<p><img src="file:///d:\Users\WIES4\Documents\00projecten\PAPER\imgs%5Creport_cablepool_cheapbat_bivariate_deployment2.png" alt=""></p>
 <ul class="contains-task-list">
 <li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"> Heatmap plot with contourlines</li>
 </ul>
 <h3 id="fig-5-relative-curtailment-against-total-deployed-generation-capacity-of-wind--solar-and-colored-dots-indicating-battery-deployment">Fig. 5. Relative curtailment against total deployed generation capacity of wind + solar and colored dots indicating battery deployment</h3>
-<p><img src="file:///d:\Users\WIES4\Documents\00projecten\PAPER\imgs%5Creport_cablepool_cheapbat_rel_curtailment_vs_deployment.png" alt=""></p>
 <ul class="contains-task-list">
-<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"> Palette to green</li>
-<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"> Relative curtailment (inclusief wind)</li>
 <li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox"> Total added PV capacity die begint vanaf 0 en dus zonder wind</li>
 </ul>
 <h2 id="nieuwe-figuurtjes-die-we-misschien-willen-hebben">Nieuwe figuurtjes die we misschien willen hebben</h2>
 <ol>
 <li>Batterij samenstelling tussen verschillende hour configs als functie van batterij opslagkosten</li>
 <li>Renewable production capacity factor (productie - curtailment) / grid capacity y-as. X-as PV capacity, Z-index battery capacity.</li>
-<li>Gedrags curves van representaties</li>
+<li>Gedragscurves met LESO thesis viewer opstarten</li>
 </ol>
 
-        
+        <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
         
     </body>
     </html>
