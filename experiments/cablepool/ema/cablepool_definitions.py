@@ -11,7 +11,7 @@ PV_COST_RANGE = (170e-3, 420e-3)
 BATTERY_ENERGY_COST_RANGE = (46e-3, 299e-3)
 BATTERY_POWER_COST_RANGE = (40e-3, 510e-3)
 
-COLLECTION = "cablepooling_paper"
+COLLECTION = "cablepooling_paper_v2"
 OUTPUT_PREFIX = f"{COLLECTION}_exp_"
 
 
@@ -29,7 +29,7 @@ move_log_from_active_to_cold = partial(
 
 
 # create bucket if not already exist
-if False:
+if True:
     try:
         LESO.dataservice.google.cloud_create_bucket(COLLECTION)
     except Conflict as c:
@@ -38,7 +38,7 @@ if False:
 
 MODELS = {
     "high_ratio": MODEL_FOLDER / "cablepooling_paper.pkl",
-    "current_ratio": MODEL_FOLDER / "cablepooling_paper_lower_dcac.pkl",
+    "low_ratio": MODEL_FOLDER / "cablepooling_paper_lower_dcac.pkl",
     "both_ratios": MODEL_FOLDER / "cablepooling_paper_both.pkl",
 }
 
@@ -95,5 +95,6 @@ assert all(
 ), "All models in a run should produce the same output!"
 
 # use this to easily generate the metrics for installed capacity
-if False:
-    print(m)
+if True:
+    for n in m:
+        print(n)

@@ -180,6 +180,7 @@ def CablePooling(
         {  # ema_inputs
             "battery_cost": battery_cost,
             "pv_cost": pv_cost,
+            "dc_ratio": dc_ratio,
         }
     )
     db_entry.update(meta_data)  # metadata

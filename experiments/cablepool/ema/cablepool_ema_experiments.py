@@ -13,7 +13,7 @@ from ema_workbench.em_framework.evaluators import FullFactorialSampler
 from cablepool_leso_handshake import METRICS, RESULTS_FOLDER, CablePooling, COLLECTION
 from cablepool_definitions import PV_COST_RANGE, BATTERY_ENERGY_COST_RANGE
 
-RATIO_SCENARIOS = ["current_ratio", "both_ratios"]
+RATIO_SCENARIOS = ["high_ratio", "low_ratio", "both_ratios"]
 
 
 if __name__ == "__main__":

@@ -97,7 +97,7 @@ for c in component_list:
     if isinstance(c, Lithium):
         c.capex_storage = 0.046
         c.capex_power = 40e-3
-        c.cycle_efficieny = 92e-3
+        c.cycle_efficieny = 0.92
         c.discharge_rate = 0.999958
         c.lifetime = 25
         c._opex = 0.54e-3 / c.EP_ratio
