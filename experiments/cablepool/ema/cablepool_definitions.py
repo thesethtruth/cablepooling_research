@@ -95,6 +95,6 @@ assert all(
 ), "All models in a run should produce the same output!"
 
 # use this to easily generate the metrics for installed capacity
-if True:
+if False:
     for n in m:
         print(n)

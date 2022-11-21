@@ -1,18 +1,19 @@
 #%% evhub_postprocess_tools.py
 from pathlib import Path
-from LESO.experiments.analysis import gdatastore_results_to_df, gcloud_read_experiment
+
 import pandas as pd
+
+from LESO.experiments.analysis import gcloud_read_experiment, gdatastore_results_to_df
 
 FOLDER = Path(__file__).parent
 RESOURCE_FOLDER = FOLDER / "resources"
 RESOURCE_FOLDER.mkdir(exist_ok=True)
-COLLECTION = "cablepooling_paper"
+COLLECTION = "cablepooling_paper_v2"
 
 ## pointers
 # PV
-pv_col1 = "PV South installed capacity"
+pv_col1 = pv_col3 = "PV high DC ratio installed capacity"
 pv_col2 = "PV low DC ratio installed capacity"
-pv_col3 = "PV high DC ratio installed capacity"
 # Wind
 wind_col = "Nordex N100 2500 installed capacity"
 # Battery
@@ -43,7 +44,7 @@ bivar_tech_dict = {
     "battery": total_bat_col,
 }
 
-experiments = ["high_dc", "low_dc", "both_dc"]
+experiments = ["high_ratio", "low_ratio", "both_ratios"]
 
 #%% load in results
 def get_data_from_db(experiment, force_refresh=False):
@@ -58,7 +59,7 @@ def get_data_from_db(experiment, force_refresh=False):
         db = pd.read_pickle(pickled_db)
 
     else:
-        filters = [("experiment", "=", experiment)]
+        filters = [("dc_ratio", "=", experiment)]
         db = gdatastore_results_to_df(collection=COLLECTION, filters=filters)
         db.to_pickle(RESOURCE_FOLDER / filename)
 
@@ -67,7 +68,7 @@ def get_data_from_db(experiment, force_refresh=False):
 
 def update_pv_dict_with_specific_yield(pv_dict):
 
-    mapping = {pv_col1: "high_dc", pv_col2: "low_dc", pv_col3: "both_dc"}
+    mapping = {pv_col1: "high_ratio", pv_col2: "low_ratio"}
 
     for pv_col in pv_dict.keys():
 
@@ -102,9 +103,9 @@ def add_additional_data(experiment: str, force_refresh: bool = False):
     db = get_data_from_db(experiment=experiment, force_refresh=force_refresh)
 
     mapping = {
-        "high_dc": [pv_col1],
-        "low_dc": [pv_col2],
-        "both_dc": [pv_col2, pv_col3],
+        "high_ratio": [pv_col1],
+        "low_ratio": [pv_col2],
+        "both_ratios": [pv_col2, pv_col3],
     }
 
     # curtailment

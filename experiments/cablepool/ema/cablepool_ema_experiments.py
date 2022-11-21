@@ -1,17 +1,18 @@
 from functools import partial
+
+from cablepool_definitions import BATTERY_ENERGY_COST_RANGE, PV_COST_RANGE
+from cablepool_leso_handshake import COLLECTION, METRICS, RESULTS_FOLDER, CablePooling
 from ema_workbench import (
-    save_results,
-    RealParameter,
     CategoricalParameter,
-    ScalarOutcome,
     Model,
-    ema_logging,
     MultiprocessingEvaluator,
+    RealParameter,
+    ScalarOutcome,
     SequentialEvaluator,
+    ema_logging,
+    save_results,
 )
 from ema_workbench.em_framework.evaluators import FullFactorialSampler
-from cablepool_leso_handshake import METRICS, RESULTS_FOLDER, CablePooling, COLLECTION
-from cablepool_definitions import PV_COST_RANGE, BATTERY_ENERGY_COST_RANGE
 
 RATIO_SCENARIOS = ["high_ratio", "low_ratio", "both_ratios"]
 
@@ -39,7 +40,9 @@ if __name__ == "__main__":
     if debug is False:
         with MultiprocessingEvaluator(model, n_processes=6) as evaluator:
             results = evaluator.perform_experiments(
-                scenarios=32, policies=2, uncertainty_sampling=FullFactorialSampler()
+                scenarios=32,
+                policies=len(RATIO_SCENARIOS),
+                uncertainty_sampling=FullFactorialSampler(),
             )
     else:
         with SequentialEvaluator(model) as evaluator:
