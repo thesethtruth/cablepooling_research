@@ -91,7 +91,7 @@ for experiment in experiments:
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "pv_deployment_vs_cost_z_battery.png")
 
-    ##  fig (3) [b] PV deployment vs PV cost with battery Z-index  ------------------------------------------------------
+    ##  fig (3) [b] battery deployment vs battery cost with PV Z-index  ------------------------------------------------------
 
     fig, ax = plt.subplots()
     fig, ax = default_matplotlib_style(fig, ax)
@@ -254,6 +254,38 @@ for experiment in experiments:
     )
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "abs_curtailment_vs_deployment.png")
+
+    ## Fig XX  - additional figure
+    #%%
+    fig, ax = plt.subplots()
+    fig, ax = default_matplotlib_style(fig, ax)
+
+    fig.set_size_inches(6, 4)
+    sns.scatterplot(
+        x=total_bat_col,
+        y="average_storage_duration",
+        size=pv_dc_col,
+        hue=pv_dc_col,
+        data=df,
+        palette="Reds",
+        ax=ax,
+        edgecolor="black",
+    )
+
+    ax.set_ylabel("deployed battery capacity (MWh)")
+    ax.set_xlabel("battery energy capacity cost (€/kWh)")
+
+    ax.legend(
+        bbox_to_anchor=(0.5, -0.2),
+        loc=9,
+        borderaxespad=0.0,
+        frameon=True,
+        title="Deployed PV capacity (MWp)",
+        ncol=6,
+    )
+
+    #%%
+    default_matplotlib_save(fig, IMAGE_FOLDER / "addtional_figure_storage_duration.png")
 
     if True:
         crop_transparency_top_bottom(

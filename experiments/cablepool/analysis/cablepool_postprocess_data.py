@@ -145,6 +145,7 @@ def add_additional_data(experiment: str, force_refresh: bool = False):
         + db[bat12_col] / 12
     )
     db["pv_cost_ac"] = db["pv_cost"] * pv_dict[mapping[experiment][0]]["dc_ratio"]
+    db["average_storage_duration"] = db.total_storage_energy / db.total_storage_power
 
     # switch that determines the ratio between PV and wind
     switch = lambda x: "<1" if x < 1 else ">1"
