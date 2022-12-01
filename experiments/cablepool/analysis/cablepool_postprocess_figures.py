@@ -9,6 +9,9 @@ from cablepool_postprocess_data import (
     total_bat_col,
     pv_dc_col,
 )
+from cablepool_postprocess_data import pv_col1 as high_dc_pv_col
+from cablepool_postprocess_data import pv_col2 as low_dc_pv_col
+
 from LESO.plotting import default_matplotlib_save, default_matplotlib_style
 from LESO.plotting import crop_transparency_top_bottom
 
@@ -46,6 +49,10 @@ from functools import partial
 
 twiny_energy_cost_for_2h_battery = partial(
     determine_cost_for_battery_config, storage_duration=2
+)
+
+twiny_energy_cost_for_6h_battery = partial(
+    determine_cost_for_battery_config, storage_duration=6
 )
 
 #%% open loop for all experiments
@@ -115,7 +122,7 @@ for experiment in experiments:
     bottom_xticks = ax.get_xticks()[1:-1]
     ax2.set_xlim(ax.get_xlim())
     ax2.set_xticks(bottom_xticks)
-    ax2.set_xticklabels(twiny_energy_cost_for_2h_battery(bottom_xticks))
+    ax2.set_xticklabels(twiny_energy_cost_for_6h_battery(bottom_xticks))
     ax2.set_xlabel("2h battery capacity cost (€/kWh)")
 
     ax.legend(
@@ -123,7 +130,7 @@ for experiment in experiments:
         loc=9,
         borderaxespad=0.0,
         frameon=True,
-        title="Deployed PV capacity (MWp)",
+        title="deployed PV capacity (MWp)",
         ncol=6,
     )
 
@@ -154,7 +161,7 @@ for experiment in experiments:
         loc=9,
         borderaxespad=0.0,
         frameon=True,
-        title="Deployed PV capacity (MWp)",
+        title="deployed PV capacity (MWp)",
         ncol=6,
     )
     default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_pv.png")
@@ -255,7 +262,40 @@ for experiment in experiments:
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "abs_curtailment_vs_deployment.png")
 
-    ## Fig XX  - additional figure
+    ## Fig X1  - additional figure add_fig_battery_cost_vs_storage_duration_z_battery
+    #%%
+    fig, ax = plt.subplots()
+    fig, ax = default_matplotlib_style(fig, ax)
+
+    fig.set_size_inches(6, 4)
+    sns.scatterplot(
+        x="battery_cost",
+        y="average_storage_duration",
+        size=total_bat_col,
+        hue=total_bat_col,
+        data=df,
+        palette="Greens",
+        ax=ax,
+        edgecolor="black",
+    )
+
+    ax.set_ylabel("storage duration (h)")
+    ax.set_xlabel("battery energy capacity cost (€/kWh)")
+
+    ax.legend(
+        bbox_to_anchor=(0.5, -0.2),
+        loc=9,
+        borderaxespad=0.0,
+        frameon=True,
+        title="deployed battery capacity (MWh)",
+        ncol=6,
+    )
+
+    default_matplotlib_save(
+        fig, IMAGE_FOLDER / "add_fig_battery_cost_vs_storage_duration_z_battery.png"
+    )
+
+    ## Fig X1  - additional figure add_fig_deployed_battery_vs_storage_duration_z_PV
     #%%
     fig, ax = plt.subplots()
     fig, ax = default_matplotlib_style(fig, ax)
@@ -267,25 +307,91 @@ for experiment in experiments:
         size=pv_dc_col,
         hue=pv_dc_col,
         data=df,
-        palette="Reds",
+        palette="YlOrBr",
         ax=ax,
         edgecolor="black",
     )
 
-    ax.set_ylabel("deployed battery capacity (MWh)")
-    ax.set_xlabel("battery energy capacity cost (€/kWh)")
+    ax.set_ylabel("storage duration (h)")
+    ax.set_xlabel("deployed battery capacity (MWh)")
 
     ax.legend(
         bbox_to_anchor=(0.5, -0.2),
         loc=9,
         borderaxespad=0.0,
         frameon=True,
-        title="Deployed PV capacity (MWp)",
+        title="deployed PV capacity (MWp)",
         ncol=6,
     )
 
-    #%%
-    default_matplotlib_save(fig, IMAGE_FOLDER / "addtional_figure_storage_duration.png")
+    default_matplotlib_save(
+        fig, IMAGE_FOLDER / "add_fig_deployed_battery_vs_storage_duration_z_PV.png"
+    )
+
+    # DC ratio plots for only both ratio experiments
+    if experiment == "both_ratios":
+
+        fig, ax = plt.subplots()
+        fig, ax = default_matplotlib_style(fig, ax)
+
+        fig.set_size_inches(6, 4)
+        sns.scatterplot(
+            x="pv_cost",
+            y="battery_cost",
+            size=high_dc_pv_col,
+            hue=high_dc_pv_col,
+            data=df,
+            palette="YlOrBr",
+            ax=ax,
+            edgecolor="black",
+        )
+
+        ax.set_ylabel("battery power\ncapacity cost (€/kW)")
+        ax.set_xlabel("PV capacity cost (€/kWp)")
+
+        ax.legend(
+            bbox_to_anchor=(0.5, -0.2),
+            loc=9,
+            borderaxespad=0.0,
+            frameon=True,
+            title="deployed PV capacity (MWp)\n(high DC ratio)",
+            ncol=6,
+        )
+
+        default_matplotlib_save(
+            fig, IMAGE_FOLDER / "pv_cost_vs_bat_cost_z_high_dc_capacity.png"
+        )
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        fig, ax = plt.subplots()
+        fig, ax = default_matplotlib_style(fig, ax)
+
+        fig.set_size_inches(6, 4)
+        sns.scatterplot(
+            x="pv_cost",
+            y="battery_cost",
+            size=low_dc_pv_col,
+            hue=low_dc_pv_col,
+            data=df,
+            palette="YlOrBr",
+            ax=ax,
+            edgecolor="black",
+        )
+
+        ax.set_ylabel("battery power\ncapacity cost (€/kW)")
+        ax.set_xlabel("PV capacity cost (€/kWp)")
+
+        ax.legend(
+            bbox_to_anchor=(0.5, -0.2),
+            loc=9,
+            borderaxespad=0.0,
+            frameon=True,
+            title="deployed PV capacity (MWp)\n(low DC ratio)",
+            ncol=6,
+        )
+
+        default_matplotlib_save(
+            fig, IMAGE_FOLDER / "pv_cost_vs_bat_cost_z_low_dc_capacity.png"
+        )
 
     if True:
         crop_transparency_top_bottom(
