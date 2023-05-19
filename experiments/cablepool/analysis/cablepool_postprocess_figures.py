@@ -4,6 +4,8 @@ import numpy as np
 from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib import lines
+
 
 from cablepool_postprocess_data import (
     total_bat_col,
@@ -20,9 +22,9 @@ from LESO.plotting import crop_transparency_top_bottom
 FOLDER = Path(__file__).parent
 RESULT_FOLDER = FOLDER.parent / "results"
 RESOURCE_FOLDER = FOLDER / "resources"
-PV_COST_RANGE = (170e-3, 420e-3)
-BATTERY_ENERGY_COST_RANGE = (46e-3, 299e-3)
-BATTERY_POWER_COST_RANGE = (40e-3, 510e-3)
+PV_COST_RANGE = (170, 420)
+BATTERY_ENERGY_COST_RANGE = (46, 299)
+BATTERY_POWER_COST_RANGE = (40, 510)
 
 #%% helper functions
 def energy_cost_to_power_cost(value):
@@ -96,6 +98,11 @@ for experiment in experiments:
         ncol=6,
     )
 
+    ### ADD COST
+    ax.axvline(y=0, color='black', linestyle='--')
+    # Create line object for legend
+    line = lines.Line2D([], [], color='black', linestyle='--', label='Zero line')
+
     default_matplotlib_save(fig, IMAGE_FOLDER / "pv_deployment_vs_cost_z_battery.png")
 
     ##  fig (3) [b] battery deployment vs battery cost with PV Z-index  ------------------------------------------------------
@@ -134,6 +141,10 @@ for experiment in experiments:
         ncol=6,
     )
 
+    ### ADD COST
+    ax.axvline(y=0, color='black', linestyle='--')
+    # Create line object for legend
+    line = lines.Line2D([], [], color='black', linestyle='--', label='Zero line')
     default_matplotlib_save(fig, IMAGE_FOLDER / "battery_deployment_vs_cost_z_pv.png")
 
     ##  fig (4) [a] battery cost vs PV cost with PV Z-index  ------------------------------------------------------
@@ -154,7 +165,7 @@ for experiment in experiments:
         edgecolor="black",
     )
 
-    ax.set_ylabel("battery power\ncapacity cost (€/kW)")
+    ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")
     ax.set_xlabel("PV capacity cost (€/kWp)")
     ax.legend(
         bbox_to_anchor=(0.5, -0.4),
@@ -184,7 +195,7 @@ for experiment in experiments:
         edgecolor="black",
     )
 
-    ax.set_ylabel("battery power\ncapacity cost (€/kW)")
+    ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")
     ax.set_xlabel("PV capacity cost (€/kWp)")
     ax.legend(
         bbox_to_anchor=(0.5, -0.4),
@@ -194,6 +205,9 @@ for experiment in experiments:
         title="deployed battery capacity (MWh)",
         ncol=6,
     )
+
+
+
     default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_battery.png")
 
     ##  fig (5) [a] relative curtailment vs additional PV Z index battery ------------------------------------------------------
@@ -222,7 +236,7 @@ for experiment in experiments:
         title="deployed battery capacity (MWh)",
         ncol=3,
     )
-
+    
     default_matplotlib_save(
         fig, IMAGE_FOLDER / "rel_curtailment_vs_PV_deployment_z_battery.png"
     )
@@ -291,6 +305,11 @@ for experiment in experiments:
         ncol=6,
     )
 
+    ### ADD COST
+    ax.axvline(y=0, color='black', linestyle='--')
+    # Create line object for legend
+    line = lines.Line2D([], [], color='black', linestyle='--', label='Zero line')
+
     default_matplotlib_save(
         fig, IMAGE_FOLDER / "add_fig_battery_cost_vs_storage_duration_z_battery.png"
     )
@@ -346,7 +365,7 @@ for experiment in experiments:
             edgecolor="black",
         )
 
-        ax.set_ylabel("battery power\ncapacity cost (€/kW)")
+        ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")
         ax.set_xlabel("PV capacity cost (€/kWp)")
 
         ax.legend(
@@ -377,7 +396,7 @@ for experiment in experiments:
             edgecolor="black",
         )
 
-        ax.set_ylabel("battery power\ncapacity cost (€/kW)")
+        ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")
         ax.set_xlabel("PV capacity cost (€/kWp)")
 
         ax.legend(
