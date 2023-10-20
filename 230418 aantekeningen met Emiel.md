@@ -10,7 +10,11 @@
 
 - [ ] cost vs. cost - grafieken range 2050 en 2020
 - [ ] cost vs. cost - Punten van 20 - 30 - 50
-  - [ ] Emiel geeft die punten
+  - [ ] 2020 mid waarde is ID 171 (both)
+  - [ ] 2030 mid waarde is ID 792 (both)
+  - [ ] 2050 mid waarde is ID 576 (both)
+  - [ ] Alleen bij pvcost vs batcost vs pv cap met label
+  - [ ] Per jaar jaar een kleur
 - [ ] 2h battery twinx veranderen naar 6-hour afgerond naar int (label = "6-hour battery cost")
 - [ ] abs_curtailment grafiek -> label veranderen naar 'absolute curtailment'
 - [ ] Bij curtailment plaatjes -> deployed capacity
