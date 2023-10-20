@@ -1,10 +1,10 @@
 # %%
 import pandas as pd
-import numpy as np
 from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib import lines
+import numpy as np
 
 
 from cablepool_postprocess_data import (
@@ -18,7 +18,7 @@ from LESO.plotting import default_matplotlib_save, default_matplotlib_style
 from LESO.plotting import crop_transparency_top_bottom
 
 
-#%% constants
+# %% constants
 FOLDER = Path(__file__).parent
 RESULT_FOLDER = FOLDER.parent / "results"
 RESOURCE_FOLDER = FOLDER / "resources"
@@ -26,7 +26,8 @@ PV_COST_RANGE = (170, 420)
 BATTERY_ENERGY_COST_RANGE = (46, 299)
 BATTERY_POWER_COST_RANGE = (40, 510)
 
-#%% helper functions
+
+# %% helper functions
 def energy_cost_to_power_cost(value):
     min, max = BATTERY_ENERGY_COST_RANGE
     map_min, map_max = BATTERY_POWER_COST_RANGE
@@ -40,11 +41,10 @@ def energy_cost_to_power_cost(value):
 def determine_cost_for_battery_config(
     energy_cost: float, storage_duration: int
 ) -> float:
-
     power_cost = energy_cost_to_power_cost(energy_cost)
     cost_per_kwh = (storage_duration * energy_cost + power_cost) / storage_duration
 
-    return np.round(cost_per_kwh, 2)
+    return np.round(cost_per_kwh)
 
 
 from functools import partial
@@ -57,18 +57,20 @@ twiny_energy_cost_for_6h_battery = partial(
     determine_cost_for_battery_config, storage_duration=6
 )
 
-#%% open loop for all experiments
+# %% open loop for all PV_ts
 
-from cablepool_postprocess_data import experiments
+from cablepool_postprocess_data import experiments, PV_COST_DICT, BAT_COST_DICT
+
 
 for experiment in experiments:
-
     dataset_filename = f"{experiment}_additional.pkl"
     IMAGE_FOLDER = FOLDER / "images" / experiment
     IMAGE_FOLDER.mkdir(exist_ok=True, parents=True)
 
     # read in data
     df = pd.read_pickle(RESOURCE_FOLDER / dataset_filename)
+    df["pv_cost"] = df["pv_cost"] * 1000
+    df["battery_cost"] = df["battery_cost"] * 1000
 
     ##  fig (3) [a] PV deployment vs PV cost with battery Z-index -----------------------------------------------------
 
@@ -98,10 +100,22 @@ for experiment in experiments:
         ncol=6,
     )
 
-    ### ADD COST
-    ax.axvline(y=0, color='black', linestyle='--')
-    # Create line object for legend
-    line = lines.Line2D([], [], color='black', linestyle='--', label='Zero line')
+    # ### ADD COST
+    _cost_dict = PV_COST_DICT[experiment]
+    for year, mean in _cost_dict.items():
+        ax.axvline(
+            x=mean,
+            color="gray",
+            linestyle="--",
+        )
+        y = ax.get_ylim()[-1]
+        ax.annotate(
+            f"{year}",
+            xy=(mean, y),
+            ha="center",
+            xytext=(0, 5),
+            textcoords="offset points",
+        )
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "pv_deployment_vs_cost_z_battery.png")
 
@@ -142,12 +156,23 @@ for experiment in experiments:
     )
 
     ### ADD COST
-    ax.axvline(y=0, color='black', linestyle='--')
-    # Create line object for legend
-    line = lines.Line2D([], [], color='black', linestyle='--', label='Zero line')
+    for year, mean in BAT_COST_DICT.items():
+        ax.axvline(
+            x=mean,
+            color="gray",
+            linestyle="--",
+        )
+        y = ax.get_ylim()[-1]
+        ax.annotate(
+            f"{year}",
+            xy=(mean, y),
+            ha="center",
+            xytext=(0, 1),
+            textcoords="offset points",
+        )
     default_matplotlib_save(fig, IMAGE_FOLDER / "battery_deployment_vs_cost_z_pv.png")
 
-    ##  fig (4) [a] battery cost vs PV cost with PV Z-index  ------------------------------------------------------
+    # ##  fig (4) [a] battery cost vs PV cost with PV Z-index  ------------------------------------------------------
 
     fig, ax = plt.subplots()
     fig, ax = default_matplotlib_style(fig, ax)
@@ -206,11 +231,26 @@ for experiment in experiments:
         ncol=6,
     )
 
-
+    ## ADD COST
+    _cost_dict = PV_COST_DICT[experiment]
+    for year, mean in _cost_dict.items():
+        ax.axvline(
+            x=mean,
+            color="gray",
+            linestyle="--",
+        )
+        y = ax.get_ylim()[-1]
+        ax.annotate(
+            f"{year}",
+            xy=(mean, y),
+            ha="center",
+            xytext=(0, 5),
+            textcoords="offset points",
+        )
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_battery.png")
 
-    ##  fig (5) [a] relative curtailment vs additional PV Z index battery ------------------------------------------------------
+    # ##  fig (5) [a] relative curtailment vs additional PV Z index battery ------------------------------------------------------
     fig, ax = plt.subplots()
     fig, ax = default_matplotlib_style(fig, ax)
     fig.set_size_inches(4, 3)
@@ -236,7 +276,7 @@ for experiment in experiments:
         title="deployed battery capacity (MWh)",
         ncol=3,
     )
-    
+
     default_matplotlib_save(
         fig, IMAGE_FOLDER / "rel_curtailment_vs_PV_deployment_z_battery.png"
     )
@@ -277,7 +317,7 @@ for experiment in experiments:
     default_matplotlib_save(fig, IMAGE_FOLDER / "abs_curtailment_vs_deployment.png")
 
     ## Fig X1  - additional figure add_fig_battery_cost_vs_storage_duration_z_battery
-    #%%
+    # %%
     fig, ax = plt.subplots()
     fig, ax = default_matplotlib_style(fig, ax)
 
@@ -305,17 +345,28 @@ for experiment in experiments:
         ncol=6,
     )
 
-    ### ADD COST
-    ax.axvline(y=0, color='black', linestyle='--')
-    # Create line object for legend
-    line = lines.Line2D([], [], color='black', linestyle='--', label='Zero line')
+    ## ADD COST
+    for year, mean in BAT_COST_DICT.items():
+        ax.axvline(
+            x=mean,
+            color="gray",
+            linestyle="--",
+        )
+        y = ax.get_ylim()[-1]
+        ax.annotate(
+            f"{year}",
+            xy=(mean, y),
+            ha="center",
+            xytext=(0, 5),
+            textcoords="offset points",
+        )
 
     default_matplotlib_save(
         fig, IMAGE_FOLDER / "add_fig_battery_cost_vs_storage_duration_z_battery.png"
     )
 
     ## Fig X1  - additional figure add_fig_deployed_battery_vs_storage_duration_z_PV
-    #%%
+    # %%
     fig, ax = plt.subplots()
     fig, ax = default_matplotlib_style(fig, ax)
 
@@ -349,7 +400,6 @@ for experiment in experiments:
 
     # DC ratio plots for only both ratio experiments
     if experiment == "both_ratios":
-
         fig, ax = plt.subplots()
         fig, ax = default_matplotlib_style(fig, ax)
 
@@ -376,6 +426,40 @@ for experiment in experiments:
             title="deployed PV capacity (MWp)\n(high DC ratio)",
             ncol=6,
         )
+
+        ## ADD COST
+        ## ### PV - X - vline
+        _cost_dict = PV_COST_DICT[experiment]
+        for year, mean in _cost_dict.items():
+            ax.axvline(
+                x=mean,
+                color="gray",
+                linestyle="--",
+            )
+            y = ax.get_ylim()[-1]
+            ax.annotate(
+                f"{year}",
+                xy=(mean, y),
+                ha="center",
+                xytext=(0, 5),
+                textcoords="offset points",
+            )
+
+        ## ### Battery - Y - hline
+        for year, mean in BAT_COST_DICT.items():
+            ax.axhline(
+                y=mean,
+                color="gray",
+                linestyle="--",
+            )
+            x = ax.get_xlim()[-1]
+            ax.annotate(
+                f"{year}",
+                xy=(x, mean),
+                ha="center",
+                xytext=(0, 5),
+                textcoords="offset points",
+            )
 
         default_matplotlib_save(
             fig, IMAGE_FOLDER / "pv_cost_vs_bat_cost_z_high_dc_capacity.png"
@@ -411,6 +495,39 @@ for experiment in experiments:
         default_matplotlib_save(
             fig, IMAGE_FOLDER / "pv_cost_vs_bat_cost_z_low_dc_capacity.png"
         )
+        ## ADD COST
+        ## ### PV - X - vline
+        _cost_dict = PV_COST_DICT[experiment]
+        for year, mean in _cost_dict.items():
+            ax.axvline(
+                x=mean,
+                color="gray",
+                linestyle="--",
+            )
+            y = ax.get_ylim()[-1]
+            ax.annotate(
+                f"{year}",
+                xy=(mean, y),
+                ha="center",
+                xytext=(0, 5),
+                textcoords="offset points",
+            )
+
+        ## ### Battery - Y - hline
+        for year, mean in BAT_COST_DICT.items():
+            ax.axhline(
+                y=mean,
+                color="gray",
+                linestyle="--",
+            )
+            x = ax.get_xlim()[-1]
+            ax.annotate(
+                f"{year}",
+                xy=(x, mean),
+                ha="center",
+                xytext=(0, 5),
+                textcoords="offset points",
+            )
 
     if True:
         crop_transparency_top_bottom(

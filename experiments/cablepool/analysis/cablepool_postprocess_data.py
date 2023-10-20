@@ -46,6 +46,34 @@ bivar_tech_dict = {
 
 experiments = ["high_ratio", "low_ratio", "both_ratios"]
 
+#%% Cost definitions
+
+low_ratio = {
+    2020: 398,
+    2030: 266,
+    2050: 199,
+}
+high_ratio = {2020: 392, 2030: 262, 2050: 196}
+
+both_ratios = {
+    2020: 395,
+    2030: 264,
+    2050: 197,
+}
+
+PV_COST_DICT = {
+    "high_ratio": high_ratio,
+    "low_ratio": low_ratio,
+    "both_ratios": both_ratios,
+}
+
+BAT_COST_DICT = {
+    2020: 232,
+    2030: 142,
+    2050: 75,
+}
+
+
 #%% load in results
 def get_data_from_db(experiment, force_refresh=False):
 
