@@ -62,7 +62,7 @@ twiny_energy_cost_for_6h_battery = partial(
 
 from cablepool_postprocess_data import experiments, PV_COST_DICT, BAT_COST_DICT
 
-
+# experiments
 for experiment in experiments:
     dataset_filename = f"{experiment}_additional.pkl"
     IMAGE_FOLDER = FOLDER / "images" / experiment
@@ -202,7 +202,7 @@ for experiment in experiments:
         ncol=6,
     )
     ### ADD COST
-    plot_cost_boxes(ax=ax, annotate=True)
+    plot_cost_boxes(ax=ax)
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_pv.png")
 
@@ -236,7 +236,7 @@ for experiment in experiments:
     )
 
     ## ADD COST
-    plot_cost_boxes(ax=ax, annotate=False)
+    plot_cost_boxes(ax=ax)
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_battery.png")
 
@@ -426,12 +426,12 @@ for experiment in experiments:
             loc=9,
             borderaxespad=0.0,
             frameon=True,
-            title="effective DC ratio (-)\n",
+            title="effective DC/AC ratio (MWp/MW)",
             ncol=6,
             labels=labels,
             handles=h,
         )
-        plot_cost_boxes(ax=ax, annotate=False)
+        plot_cost_boxes(ax=ax, header_height=0.6)
         default_matplotlib_save(
             fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_vs_z_dc_ratio.png"
         )
