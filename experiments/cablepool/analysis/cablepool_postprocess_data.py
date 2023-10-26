@@ -1,5 +1,7 @@
 #%% evhub_postprocess_tools.py
 from pathlib import Path
+from dataclasses import dataclass
+from typing import Tuple
 
 import pandas as pd
 
@@ -31,6 +33,19 @@ pv_dict = {
     pv_col2: {"dc_ratio": 1 / 0.7, "specific_yield": None},
     pv_col3: {"dc_ratio": 2, "specific_yield": None},
 }
+
+
+@dataclass
+class Costblock():
+    pv: Tuple[int, int]
+    bat: Tuple[int, int]
+    year: int
+    
+costblocks = [
+    Costblock(pv=(380, 420), bat=(160, 299), year=2020),
+    Costblock(pv=(170, 280), bat=(46, 255), year=2050),
+]
+
 
 # alts
 total_bat_col = "total_storage_energy"

@@ -13,6 +13,7 @@ from cablepool_postprocess_data import (
 )
 from cablepool_postprocess_data import pv_col1 as high_dc_pv_col
 from cablepool_postprocess_data import pv_col2 as low_dc_pv_col
+from util import plot_cost_boxes
 
 from LESO.plotting import default_matplotlib_save, default_matplotlib_style
 from LESO.plotting import crop_transparency_top_bottom
@@ -200,6 +201,9 @@ for experiment in experiments:
         title="deployed PV capacity (MWp)",
         ncol=6,
     )
+    ### ADD COST
+    plot_cost_boxes(ax=ax, annotate=True)
+
     default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_pv.png")
 
     ##  fig (4) [b] battery cost vs PV cost with battery Z-index  ------------------------------------------------------
@@ -232,21 +236,7 @@ for experiment in experiments:
     )
 
     ## ADD COST
-    _cost_dict = PV_COST_DICT[experiment]
-    for year, mean in _cost_dict.items():
-        ax.axvline(
-            x=mean,
-            color="gray",
-            linestyle="--",
-        )
-        y = ax.get_ylim()[-1]
-        ax.annotate(
-            f"{year}",
-            xy=(mean, y),
-            ha="center",
-            xytext=(0, 5),
-            textcoords="offset points",
-        )
+    plot_cost_boxes(ax=ax, annotate=False)
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_z_battery.png")
 
@@ -400,19 +390,32 @@ for experiment in experiments:
 
     # DC ratio plots for only both ratio experiments
     if experiment == "both_ratios":
+
+        vmin, vmax = 1.4, 2
+        cmap = sns.color_palette(palette="YlOrBr", as_cmap=True)
+        norm = plt.Normalize(vmin=vmin, vmax=vmax)
+        lp = lambda i: plt.plot([], color=cmap(norm(i)), marker="o", ls="", ms=10)[0]
+        labels = [round(i, 1) for i in np.arange(vmin, vmax, 0.2)]
+        h = [lp(i) for i in labels]
+
         fig, ax = plt.subplots()
         fig, ax = default_matplotlib_style(fig, ax)
 
         fig.set_size_inches(6, 4)
+        df["effective_dc_ratio"] = (
+            df[high_dc_pv_col] * 2 + df[low_dc_pv_col] * 1.4
+        ) / (df[high_dc_pv_col] + df[low_dc_pv_col])
         sns.scatterplot(
             x="pv_cost",
             y="battery_cost",
-            size=high_dc_pv_col,
-            hue=high_dc_pv_col,
+            size="effective_dc_ratio",
+            hue="effective_dc_ratio",
             data=df,
             palette="YlOrBr",
             ax=ax,
             edgecolor="black",
+            vmin=vmin,
+            vmax=vmax,
         )
 
         ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")
@@ -423,111 +426,15 @@ for experiment in experiments:
             loc=9,
             borderaxespad=0.0,
             frameon=True,
-            title="deployed PV capacity (MWp)\n(high DC ratio)",
+            title="effective DC ratio (-)\n",
             ncol=6,
+            labels=labels,
+            handles=h,
         )
-
-        ## ADD COST
-        ## ### PV - X - vline
-        _cost_dict = PV_COST_DICT[experiment]
-        for year, mean in _cost_dict.items():
-            ax.axvline(
-                x=mean,
-                color="gray",
-                linestyle="--",
-            )
-            y = ax.get_ylim()[-1]
-            ax.annotate(
-                f"{year}",
-                xy=(mean, y),
-                ha="center",
-                xytext=(0, 5),
-                textcoords="offset points",
-            )
-
-        ## ### Battery - Y - hline
-        for year, mean in BAT_COST_DICT.items():
-            ax.axhline(
-                y=mean,
-                color="gray",
-                linestyle="--",
-            )
-            x = ax.get_xlim()[-1]
-            ax.annotate(
-                f"{year}",
-                xy=(x, mean),
-                ha="center",
-                xytext=(0, 5),
-                textcoords="offset points",
-            )
-
+        plot_cost_boxes(ax=ax, annotate=False)
         default_matplotlib_save(
-            fig, IMAGE_FOLDER / "pv_cost_vs_bat_cost_z_high_dc_capacity.png"
+            fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_vs_z_dc_ratio.png"
         )
-        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        fig, ax = plt.subplots()
-        fig, ax = default_matplotlib_style(fig, ax)
-
-        fig.set_size_inches(6, 4)
-        sns.scatterplot(
-            x="pv_cost",
-            y="battery_cost",
-            size=low_dc_pv_col,
-            hue=low_dc_pv_col,
-            data=df,
-            palette="YlOrBr",
-            ax=ax,
-            edgecolor="black",
-        )
-
-        ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")
-        ax.set_xlabel("PV capacity cost (€/kWp)")
-
-        ax.legend(
-            bbox_to_anchor=(0.5, -0.2),
-            loc=9,
-            borderaxespad=0.0,
-            frameon=True,
-            title="deployed PV capacity (MWp)\n(low DC ratio)",
-            ncol=6,
-        )
-
-        default_matplotlib_save(
-            fig, IMAGE_FOLDER / "pv_cost_vs_bat_cost_z_low_dc_capacity.png"
-        )
-        ## ADD COST
-        ## ### PV - X - vline
-        _cost_dict = PV_COST_DICT[experiment]
-        for year, mean in _cost_dict.items():
-            ax.axvline(
-                x=mean,
-                color="gray",
-                linestyle="--",
-            )
-            y = ax.get_ylim()[-1]
-            ax.annotate(
-                f"{year}",
-                xy=(mean, y),
-                ha="center",
-                xytext=(0, 5),
-                textcoords="offset points",
-            )
-
-        ## ### Battery - Y - hline
-        for year, mean in BAT_COST_DICT.items():
-            ax.axhline(
-                y=mean,
-                color="gray",
-                linestyle="--",
-            )
-            x = ax.get_xlim()[-1]
-            ax.annotate(
-                f"{year}",
-                xy=(x, mean),
-                ha="center",
-                xytext=(0, 5),
-                textcoords="offset points",
-            )
 
     if True:
         crop_transparency_top_bottom(

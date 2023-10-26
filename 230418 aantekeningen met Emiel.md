@@ -8,7 +8,8 @@
 
 ### To do
 
-- [ ] cost vs. cost - grafieken range 2050 en 2020
+- [ ] cost vs. cost - grafieken range 2050 en 2020 (blokken)
+- [ ] Nieuwe figuur maken met DC ratio als kleur op de z-as (laag)
 - [ ] cost vs. cost - Punten van 20 - 30 - 50
   - [ ] 2020 mid waarde is ID 171 (both)
   - [ ] 2030 mid waarde is ID 792 (both)
@@ -19,6 +20,5 @@
 - [ ] abs_curtailment grafiek -> label veranderen naar 'absolute curtailment'
 - [ ] Bij curtailment plaatjes -> deployed capacity
 - [ ] Grafieken met twinx ==> vline label onder de lijn naar rechts
-- [ ] Dwingen naar meer punten (6) en op min en max; Colorbar in plaats van legend https://stackoverflow.com/questions/49761221/make-seaborn-show-a-colorbar-instead-of-a-legend-when-using-hue-in-a-bar-plot
 - [ ] Nieuwe grafiek maken met x = invest, y = net_profit, z = roi
-- [ ] Nieuwe figuur maken met DC ratio als kleur op de z-as (laag)
+- [ ] Dwingen naar meer punten (6) en op min en max; Colorbar in plaats van legend https://stackoverflow.com/questions/49761221/make-seaborn-show-a-colorbar-instead-of-a-legend-when-using-hue-in-a-bar-plot
