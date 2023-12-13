@@ -45,7 +45,7 @@ def determine_cost_for_battery_config(
     power_cost = energy_cost_to_power_cost(energy_cost)
     cost_per_kwh = (storage_duration * energy_cost + power_cost) / storage_duration
 
-    return np.round(cost_per_kwh)
+    return [int(cost) for cost in cost_per_kwh]
 
 
 from functools import partial
@@ -63,7 +63,7 @@ twiny_energy_cost_for_6h_battery = partial(
 from cablepool_postprocess_data import experiments, PV_COST_DICT, BAT_COST_DICT
 
 # experiments
-for experiment in experiments:
+for experiment in ["both_ratios"]:
     dataset_filename = f"{experiment}_additional.pkl"
     IMAGE_FOLDER = FOLDER / "images" / experiment
     IMAGE_FOLDER.mkdir(exist_ok=True, parents=True)
@@ -116,6 +116,7 @@ for experiment in experiments:
             ha="center",
             xytext=(0, 5),
             textcoords="offset points",
+            color="gray",
         )
 
     default_matplotlib_save(fig, IMAGE_FOLDER / "pv_deployment_vs_cost_z_battery.png")
@@ -145,7 +146,7 @@ for experiment in experiments:
     ax2.set_xlim(ax.get_xlim())
     ax2.set_xticks(bottom_xticks)
     ax2.set_xticklabels(twiny_energy_cost_for_6h_battery(bottom_xticks))
-    ax2.set_xlabel("2h battery capacity cost (€/kWh)")
+    ax2.set_xlabel("6h battery capacity cost (€/kWh)")
 
     ax.legend(
         bbox_to_anchor=(0.5, -0.2),
@@ -167,9 +168,11 @@ for experiment in experiments:
         ax.annotate(
             f"{year}",
             xy=(mean, y),
-            ha="center",
-            xytext=(0, 1),
+            ha="right",
+            va="top",
+            xytext=(-1, -1),
             textcoords="offset points",
+            color="gray",
         )
     default_matplotlib_save(fig, IMAGE_FOLDER / "battery_deployment_vs_cost_z_pv.png")
 
@@ -255,8 +258,10 @@ for experiment in experiments:
         edgecolor="black",
     )
 
-    ax.set_xlabel("additional PV capacity (MWp)")
+    ax.set_xlabel("deployed PV capacity (MWp)")
     ax.set_ylabel("relative\ncurtailment (%)")
+    ax.ylim = (0, 21)
+    ax.set_yticks([0, 5, 10, 15, 20])
 
     ax.legend(
         bbox_to_anchor=(0.5, -0.35),
@@ -280,6 +285,8 @@ for experiment in experiments:
     fig, ax = default_matplotlib_style(fig, ax)
     fig.set_size_inches(4, 3)
 
+    df["curtailment"] = df["curtailment"] / 1000
+
     sns.scatterplot(
         x=pv_dc_col,
         y="curtailment",
@@ -290,10 +297,12 @@ for experiment in experiments:
         edgecolor="black",
     )
 
-    ax.set_xlabel("additional PV capacity (MWp)")
-    ax.set_xticks(relplot_ticks)
-    ax.set_xticklabels(relplot_labels)
-    ax.set_ylabel("curtailment (MWh)")
+    ax.set_xlabel("deployed PV capacity (MWp)")
+    ax.set_ylabel("absolute\ncurtailment (GWh)")
+
+    ## set y ticks
+    ax.ylim = (0, 16)
+    ax.set_yticks([0, 5, 10, 15])
 
     ax.legend(
         bbox_to_anchor=(0.5, -0.35),
@@ -349,6 +358,7 @@ for experiment in experiments:
             ha="center",
             xytext=(0, 5),
             textcoords="offset points",
+            color="gray",
         )
 
     default_matplotlib_save(
@@ -390,7 +400,6 @@ for experiment in experiments:
 
     # DC ratio plots for only both ratio experiments
     if experiment == "both_ratios":
-
         vmin, vmax = 1.4, 2
         cmap = sns.color_palette(palette="YlOrBr", as_cmap=True)
         norm = plt.Normalize(vmin=vmin, vmax=vmax)

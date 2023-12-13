@@ -1,0 +1,17 @@
+{
+  "high_ratio": {
+    "2020": "cablepooling_paper_v2_exp_261294215934040.json",
+    "2030": "cablepooling_paper_v2_exp_219361421533082.json",
+    "2050": "cablepooling_paper_v2_exp_5954176877087.json"
+  },
+  "low_ratio": {
+    "2020": "cablepooling_paper_v2_exp_261294215934040.json",
+    "2030": "cablepooling_paper_v2_exp_219361421533082.json",
+    "2050": "cablepooling_paper_v2_exp_5954176877087.json"
+  },
+  "both_ratios": {
+    "2020": "cablepooling_paper_v2_exp_261294215934040.json",
+    "2030": "cablepooling_paper_v2_exp_219361421533082.json",
+    "2050": "cablepooling_paper_v2_exp_5954176877087.json"
+  }
+}
