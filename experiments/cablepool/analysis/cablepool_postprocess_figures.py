@@ -26,6 +26,22 @@ RESOURCE_FOLDER = FOLDER / "resources"
 PV_COST_RANGE = (170, 420)
 BATTERY_ENERGY_COST_RANGE = (46, 299)
 BATTERY_POWER_COST_RANGE = (40, 510)
+POINTS_HIGHLIGHT = {
+    2020: {
+        "color": "deepskyblue",
+        "exp": "cablepooling_paper_v2_exp_168548892478198.json",
+    },
+    2030: {
+        "color": "blue",
+        "exp": "cablepooling_paper_v2_exp_110088832558956.json",
+    },
+    2050: {
+        "color": "darkblue",
+        "exp": "cablepooling_paper_v2_exp_215620213215519.json",
+    },
+}
+HIGHLIGHT_MARKER_SIZE = 8
+HIGHLIGHT_MARKER_EW = 2
 
 
 # %% helper functions
@@ -58,12 +74,42 @@ twiny_energy_cost_for_6h_battery = partial(
     determine_cost_for_battery_config, storage_duration=6
 )
 
+
+def add_highlight_points(ax, x_col, y_col, z_col, annotation=False, y_divider=1):
+    dicto = POINTS_HIGHLIGHT
+    norm = ax.collections[0].norm
+    for year, dicto in dicto.items():
+        x = dicto["row"][x_col]
+        y = dicto["row"][y_col] / y_divider
+
+        ax.plot(
+            x,
+            y,
+            markeredgecolor=dicto["color"],
+            markerfacecolor="none",
+            markeredgewidth=HIGHLIGHT_MARKER_EW,
+            marker="o",
+            markersize=HIGHLIGHT_MARKER_SIZE,
+            zorder=10,
+        )
+        if annotation:
+            ax.annotate(
+                f"{year}",
+                xy=(x, y),
+                ha="center",
+                xytext=(0, 5),
+                textcoords="offset points",
+                color=dicto["color"],
+            )
+    return ax
+
+
 # %% open loop for all PV_ts
 
 from cablepool_postprocess_data import experiments, PV_COST_DICT, BAT_COST_DICT
 
 # experiments
-for experiment in ["both_ratios"]:
+for experiment in ["both_ratios", "high_ratio", "low_ratio"]:
     dataset_filename = f"{experiment}_additional.pkl"
     IMAGE_FOLDER = FOLDER / "images" / experiment
     IMAGE_FOLDER.mkdir(exist_ok=True, parents=True)
@@ -72,6 +118,12 @@ for experiment in ["both_ratios"]:
     df = pd.read_pickle(RESOURCE_FOLDER / dataset_filename)
     df["pv_cost"] = df["pv_cost"] * 1000
     df["battery_cost"] = df["battery_cost"] * 1000
+
+    if experiment == "both_ratios":
+        for year, dicto in POINTS_HIGHLIGHT.items():
+            POINTS_HIGHLIGHT[year].update(
+                {"row": df.query(f"filename_export == '{dicto['exp']}'")}
+            )
 
     ##  fig (3) [a] PV deployment vs PV cost with battery Z-index -----------------------------------------------------
 
@@ -87,6 +139,13 @@ for experiment in ["both_ratios"]:
         palette="Greens",
         ax=ax,
         edgecolor="black",
+    )
+
+    ax = add_highlight_points(
+        ax=ax,
+        x_col="pv_cost",
+        y_col=pv_dc_col,
+        z_col=total_bat_col,
     )
 
     ax.set_ylabel("deployed PV\ncapacity (MWp)")
@@ -137,6 +196,13 @@ for experiment in ["both_ratios"]:
         palette="YlOrBr",
         ax=ax,
         edgecolor="black",
+    )
+
+    ax = add_highlight_points(
+        ax=ax,
+        x_col="battery_cost",
+        y_col=total_bat_col,
+        z_col=pv_dc_col,
     )
 
     ax.set_ylabel("deployed battery capacity (MWh)")
@@ -193,6 +259,12 @@ for experiment in ["both_ratios"]:
         ax=ax,
         edgecolor="black",
     )
+    ax = add_highlight_points(
+        ax=ax,
+        x_col="pv_cost",
+        y_col="battery_cost",
+        z_col=pv_dc_col,
+    )
 
     ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")
     ax.set_xlabel("PV capacity cost (€/kWp)")
@@ -226,6 +298,12 @@ for experiment in ["both_ratios"]:
         ax=ax,
         edgecolor="black",
     )
+    ax = add_highlight_points(
+        ax=ax,
+        x_col="pv_cost",
+        y_col="battery_cost",
+        z_col=total_bat_col,
+    )
 
     ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")
     ax.set_xlabel("PV capacity cost (€/kWp)")
@@ -256,6 +334,12 @@ for experiment in ["both_ratios"]:
         palette="Greens",
         ax=ax,
         edgecolor="black",
+    )
+    ax = add_highlight_points(
+        ax=ax,
+        x_col=pv_dc_col,
+        y_col="relative_curtailment",
+        z_col=total_bat_col,
     )
 
     ax.set_xlabel("deployed PV capacity (MWp)")
@@ -296,6 +380,13 @@ for experiment in ["both_ratios"]:
         ax=ax,
         edgecolor="black",
     )
+    ax = add_highlight_points(
+        ax=ax,
+        x_col=pv_dc_col,
+        y_col="curtailment",
+        z_col=total_bat_col,
+        y_divider=1000,
+    )
 
     ax.set_xlabel("deployed PV capacity (MWp)")
     ax.set_ylabel("absolute\ncurtailment (GWh)")
@@ -331,7 +422,12 @@ for experiment in ["both_ratios"]:
         ax=ax,
         edgecolor="black",
     )
-
+    ax = add_highlight_points(
+        ax=ax,
+        x_col="battery_cost",
+        y_col="average_storage_duration",
+        z_col=total_bat_col,
+    )
     ax.set_ylabel("storage duration (h)")
     ax.set_xlabel("battery energy capacity cost (€/kWh)")
 
@@ -381,7 +477,12 @@ for experiment in ["both_ratios"]:
         ax=ax,
         edgecolor="black",
     )
-
+    ax = add_highlight_points(
+        ax=ax,
+        x_col=total_bat_col,
+        y_col="average_storage_duration",
+        z_col=pv_dc_col,
+    )
     ax.set_ylabel("storage duration (h)")
     ax.set_xlabel("deployed battery capacity (MWh)")
 
@@ -414,6 +515,12 @@ for experiment in ["both_ratios"]:
         df["effective_dc_ratio"] = (
             df[high_dc_pv_col] * 2 + df[low_dc_pv_col] * 1.4
         ) / (df[high_dc_pv_col] + df[low_dc_pv_col])
+
+        for year, dicto in POINTS_HIGHLIGHT.items():
+            POINTS_HIGHLIGHT[year].update(
+                {"row": df.query(f"filename_export == '{dicto['exp']}'")}
+            )
+
         sns.scatterplot(
             x="pv_cost",
             y="battery_cost",
@@ -425,6 +532,12 @@ for experiment in ["both_ratios"]:
             edgecolor="black",
             vmin=vmin,
             vmax=vmax,
+        )
+        ax = add_highlight_points(
+            ax=ax,
+            x_col="pv_cost",
+            y_col="battery_cost",
+            z_col="effective_dc_ratio",
         )
 
         ax.set_ylabel("battery energy\ncapacity cost (€/kWh)")

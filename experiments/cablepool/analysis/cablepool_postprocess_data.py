@@ -1,4 +1,4 @@
-#%% evhub_postprocess_tools.py
+# %% evhub_postprocess_tools.py
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Tuple
@@ -36,11 +36,12 @@ pv_dict = {
 
 
 @dataclass
-class Costblock():
+class Costblock:
     pv: Tuple[int, int]
     bat: Tuple[int, int]
     year: int
-    
+
+
 costblocks = [
     Costblock(pv=(380, 420), bat=(160, 299), year=2020),
     Costblock(pv=(170, 280), bat=(46, 255), year=2050),
@@ -61,19 +62,23 @@ bivar_tech_dict = {
 
 experiments = ["high_ratio", "low_ratio", "both_ratios"]
 
-#%% Cost definitions
+# %% Cost definitions
 
 low_ratio = {
-    2020: 398,
-    2030: 266,
-    2050: 199,
+    2020: 396,
+    2030: 267,
+    2050: 202,
 }
-high_ratio = {2020: 392, 2030: 262, 2050: 196}
+high_ratio = {
+    2020: 396,
+    2030: 267,
+    2050: 202,
+}
 
 both_ratios = {
-    2020: 395,
-    2030: 264,
-    2050: 197,
+    2020: 396,
+    2030: 267,
+    2050: 202,
 }
 
 PV_COST_DICT = {
@@ -83,21 +88,19 @@ PV_COST_DICT = {
 }
 
 BAT_COST_DICT = {
-    2020: 232,
-    2030: 142,
-    2050: 75,
+    2020: 217,
+    2030: 136,
+    2050: 70,
 }
 
 
-#%% load in results
+# %% load in results
 def get_data_from_db(experiment, force_refresh=False):
-
     filename = f"{experiment}.pkl"
     pickled_db = RESOURCE_FOLDER / filename
 
     # buffer all the calculations/db, only refresh if forced to refresh
     if pickled_db.exists() and not force_refresh:
-
         print("opened pickle -- not refreshed")
         db = pd.read_pickle(pickled_db)
 
@@ -110,11 +113,9 @@ def get_data_from_db(experiment, force_refresh=False):
 
 
 def update_pv_dict_with_specific_yield(pv_dict):
-
     mapping = {pv_col1: "high_ratio", pv_col2: "low_ratio"}
 
     for pv_col in pv_dict.keys():
-
         db = get_data_from_db(mapping[pv_col])
 
         experiment_name = db[db[pv_col] > 1].filename_export.iat[0]
@@ -142,7 +143,6 @@ def update_pv_dict_with_specific_yield(pv_dict):
 
 
 def add_additional_data(experiment: str, force_refresh: bool = False):
-
     db = get_data_from_db(experiment=experiment, force_refresh=force_refresh)
 
     mapping = {
@@ -197,7 +197,7 @@ def add_additional_data(experiment: str, force_refresh: bool = False):
     db.to_pickle(RESOURCE_FOLDER / f"{experiment}_additional.pkl")
 
 
-#%%
+# %%
 if __name__ == "__main__":
     update_pv_dict_with_specific_yield(pv_dict=pv_dict)
 
