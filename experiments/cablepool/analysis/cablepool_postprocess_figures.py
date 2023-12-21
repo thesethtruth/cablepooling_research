@@ -77,7 +77,6 @@ twiny_energy_cost_for_6h_battery = partial(
 
 def add_highlight_points(ax, x_col, y_col, z_col, annotation=False, y_divider=1):
     dicto = POINTS_HIGHLIGHT
-    norm = ax.collections[0].norm
     for year, dicto in dicto.items():
         x = dicto["row"][x_col]
         y = dicto["row"][y_col] / y_divider
@@ -109,7 +108,7 @@ def add_highlight_points(ax, x_col, y_col, z_col, annotation=False, y_divider=1)
 from cablepool_postprocess_data import experiments, PV_COST_DICT, BAT_COST_DICT
 
 # experiments
-for experiment in ["both_ratios", "high_ratio", "low_ratio"]:
+for experiment in ["both_ratios"]:
     dataset_filename = f"{experiment}_additional.pkl"
     IMAGE_FOLDER = FOLDER / "images" / experiment
     IMAGE_FOLDER.mkdir(exist_ok=True, parents=True)
@@ -556,6 +555,58 @@ for experiment in ["both_ratios", "high_ratio", "low_ratio"]:
         plot_cost_boxes(ax=ax, header_height=0.6)
         default_matplotlib_save(
             fig, IMAGE_FOLDER / "bat_cost_vs_pv_cost_vs_z_dc_ratio.png"
+        )
+
+        ## FIG investment vs net profit vs ROI
+        fig, ax = plt.subplots()
+        fig, ax = default_matplotlib_style(fig, ax)
+        fig.set_size_inches(6, 4)
+        df["return_on_add_investment"] = df["return_on_add_investment"] * 100
+
+        vmin, vmax = 8, 15
+        cmap = sns.color_palette(palette="summer_r", as_cmap=True)
+        norm = plt.Normalize(vmin=vmin, vmax=vmax)
+        lp = lambda i: plt.plot([], color=cmap(norm(i)), marker="o", ls="", ms=10)[0]
+        labels = [round(i, 1) for i in np.arange(vmin, vmax, 2)]
+        h = [lp(i) for i in labels]
+
+        vmin, vmax = 0, 14
+        sns.scatterplot(
+            x="total_investment_cost",
+            y="net_profit_add_investment",
+            hue="return_on_add_investment",
+            data=df,
+            palette="summer_r",
+            ax=ax,
+            edgecolor="black",
+            vmin=vmin,
+            vmax=vmax,
+        )
+
+        ax = add_highlight_points(
+            ax=ax,
+            x_col="total_investment_cost",
+            y_col="net_profit_add_investment",
+            z_col="return_on_add_investment",
+        )
+
+        ax.set_xlabel("total investment cost (M€)")
+        ax.set_xticks(np.arange(22, 40, 2))
+        ax.set_ylabel("net profit (M€)")
+
+        ax.legend(
+            bbox_to_anchor=(0.5, -0.2),
+            loc=9,
+            borderaxespad=0.0,
+            frameon=True,
+            title="ROI (%)",
+            ncol=4,
+            labels=labels,
+            handles=h,
+        )
+
+        default_matplotlib_save(
+            fig, IMAGE_FOLDER / "invest_cost_vs_net_profit_z_ROI.png"
         )
 
     if True:

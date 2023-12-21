@@ -9,7 +9,7 @@
 ### To do
 
 - [x] cost vs. cost - grafieken range 2050 en 2020 (blokken)
-- [ ] Nieuwe figuur maken met DC ratio als kleur op de z-as (laag)
+- [x] Nieuwe figuur maken met DC ratio als kleur op de z-as (laag)
 - [x] cost vs. cost - Punten van 20 - 30 - 50
   - [x] 2020 mid waarde is ID cablepooling_paper_v2_exp_168548892478198.json (both)
   - [x] 2030 mid waarde is ID cablepooling_paper_v2_exp_110088832558956.json (both)
